@@ -1,0 +1,7 @@
+/* Custom styles if necessary, using Tailwind for mostly everything */
+.historical-row {
+    background-color: #fef2f2;
+}
+.historical-row:hover {
+    background-color: #fee2e2;
+}
