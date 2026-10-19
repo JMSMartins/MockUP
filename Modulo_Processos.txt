@@ -1,0 +1,1742 @@
+Especificação dos Requisitos de Software
+Módulo: Gestão de Processos e Sub processos
+Versão 0.3
+
+outubro 2026
+
+Histórico de Versões
+Data
+14/10/2026
+
+Versão
+0.1
+
+Descrição
+Documento inicial com a especificação das
+funcionalidades a implementar
+
+15/10/2026
+
+0.2
+
+17/10/2026
+
+0.3
+
+Revisão de estrutura do documento. Revisão de
+funcionalidades.
+Revisão dos comentários deixados pelo Ricardo.
+Maior detalhe em diversas interfaces para
+diferenciar os fluxos. Inserção de interfaces e
+lógica de versões.
+
+Autor
+Jorge
+Martins
+e
+Jorge Pardal
+Jorge
+Martins
+Jorge
+Martins
+
+outubro 2026 - 1
+
+1. Índice
+Histórico de Versões................................................................................................................. 1
+2. Introdução.............................................................................................................................. 4
+2.1. Objetivos do documento..............................................................................................4
+2.2. Objetivos do módulo..................................................................................................... 4
+2.3. Definições e siglas..........................................................................................................5
+3. Requisitos específicos.......................................................................................................... 6
+4. Requisitos funcionais...........................................................................................................7
+4.1. Gestão dos processos.................................................................................................... 7
+[I1] Interface 1 – Lista de Processos...........................................................................7
+[I2] Interface 2 – Criação de Processo........................................................................9
+[I3] Interface 3 – Detalhe............................................................................................11
+[I4] Interface 4 – Revisão............................................................................................ 14
+4.2. Gestão de Sub Processos............................................................................................ 17
+[I5] Interface 5 – Lista de Sub processos.................................................................17
+[I6] Interface 6 – Criação de Sub processo.............................................................19
+[I7] Interface 7 – Detalhe............................................................................................21
+[I8] Interface 8 – Revisão............................................................................................ 24
+4.3. Gestão de Documentos............................................................................................... 26
+[I9] Interface 9 – Lista de Documentos...................................................................27
+[I10] Interface 10 – Criação de Documento............................................................28
+[I11] Interface 11 – Detalhe de Documento...........................................................31
+[I12] Interface 12 – Revisão de Documento...........................................................33
+4.4. Histórico.........................................................................................................................36
+[I13] Interface 13 – Detalhe Histórico de Processo..............................................36
+[I14] Interface 14 – Detalhe Histórico de Sub processo......................................37
+[I15] Interface 15 – Detalhe Histórico de Documento.........................................38
+
+outubro 2026 - 2
+
+outubro 2026 - 3
+
+2. Introdução
+2.1.
+
+Objetivos do documento
+
+Pretende-se com este documento descrever, de forma clara e objetiva, as interfaces a
+implementar e os requisitos funcionais do módulo para gestão de processos e sub processos
+no portal de gestão da qualidade.
+Este documento deverá ser revisto, validado e aprovado pela entidade competente, à qual
+compete verificar o cumprimento dos requisitos pretendidos para o módulo a implementar,
+nomeadamente as funcionalidades a disponibilizar, assim como o comportamento dos vários
+elementos apresentados nas diferentes interfaces do módulo.
+
+2.2.
+
+Objetivos do módulo
+
+2.2.1. Componentes principais do módulo
+Gestão de Processos:
+•
+
+Criação e edição de processos;
+
+•
+
+Criação e edição de sub processos, associados a um processo pai;
+
+•
+
+Associação de documentos a processos e sub processos;
+
+•
+
+Consulta de processos, sub processos e respetivos documentos;
+
+•
+
+Gestão de revisões dos processos e sub processos;
+
+•
+
+Consulta de histórico de processos e sub processos;
+
+Gestão de Documentos:
+•
+
+Associação de documentos a processos e sub processos;
+
+•
+
+Classificação de documentos por tipo (Instrumento, Regulamento, Orientação,
+Impresso);
+
+•
+
+Upload de ficheiros com validação de formato autorizado;
+
+•
+
+Registo de versão e data de elaboração;
+
+•
+
+Gestão de revisões de documentos;
+
+•
+
+Consulta de histórico de documentos;
+
+Gestão de Tipos de Documento e Formatos:
+•
+
+Definição dos tipos de documento disponíveis;
+
+•
+
+Definição dos formatos de ficheiro aceites (ex.: PDF, XLS, XLSX, DOC, DOCX);
+
+outubro 2026 - 4
+
+Gestão de donos de processos
+•
+
+Definição de donos de processos, que têm a permissão de gerir o processo e todos os
+seus descendentes.
+
+Gestão de donos de sub processos
+•
+
+Definição de donos de sub processos, que têm a permissão de gerir o sub processo e
+todos os seus documentos.
+
+Gestão de donos de documentos
+•
+
+Definição de donos de documentos, que têm a permissão de gerir o apenas o
+documento.
+
+2.2.2. Descrição do módulo
+Este módulo será disponibilizado no portal de gestão da qualidade e permitirá a gestão
+centralizada de processos e sub processos, bem como dos documentos que lhes estão
+associados. O acesso será feito por utilizadores com perfil de administração, atribuído por
+serviço.
+
+Cada processo poderá ter associado um ou mais sub processos, e cada sub processo
+estará obrigatoriamente associado a um único processo pai. Tanto os processos como
+os sub processos poderão ter documentos associados, classificados por tipo e sujeitos
+a validação de formato.
+O módulo deverá permitir a consulta de toda a informação, independentemente do estado em
+que se encontre, bem como a gestão de revisões dos processos e sub processos.
+
+2.3.
+Sigla
+UO
+I.
+TXT.
+BT.
+TB.
+DT.
+LB.
+UPL.
+
+Definições e siglas
+Definição
+Unidade Orgânica
+Interface
+Campo de Texto
+Botão
+Tabela
+Campo de Data
+Caixa de Seleção
+Campo de Carregamento de Ficheiro
+
+outubro 2026 - 5
+
+3. Requisitos específicos
+Gestão de Processos
+O módulo deverá implementar mecanismos e funcionalidades que permitam a criação, edição
+e consulta de processos. Cada processo deverá conter, a seguinte informação:
+•
+
+Código;
+
+•
+
+Nome ;
+
+•
+
+Data Revisão ;
+
+•
+
+Versão;
+
+•
+
+Objetivo;
+
+•
+
+Âmbito;
+
+•
+
+Data de elaboração;
+
+•
+
+Dono do processo (serviço / UO);
+
+•
+
+Documentos associados (em formato autorizado);
+
+Deverá ser possível gerir revisões dos processos, mantendo o histórico de alterações.
+Gestão de Sub processos
+O módulo deverá permitir a criação de sub processos, os quais estarão obrigatoriamente
+associados a um processo pai. Cada sub processo deverá conter os mesmos campos de um
+processo, acrescidos da referência ao processo pai.
+Deverá ser possível selecionar o processo pai a partir de uma lista de processos existentes.
+Gestão de Documentos
+O módulo deverá permitir a associação de documentos a processos e sub processos. Cada
+documento deverá conter:
+
+
+Código;
+
+
+
+Nome do Documento;
+
+
+
+Designação;
+
+
+
+Versão;
+
+
+
+Data de elaboração;
+
+
+
+Tipo (Instrumento, Regulamento, Orientação, Impresso);
+
+
+
+Ficheiros (1 input / uploads com validação por formato previamente definido);
+
+Consulta de Processos e Sub Processos
+
+outubro 2026 - 6
+
+O módulo deverá implementar mecanismos e funcionalidades que permitam a consulta de
+toda a informação associada aos processos e sub processos, bem como aos documentos
+associados. A consulta deverá ser possível mediante a definição de critérios de pesquisa.
+
+Consulta de Documentos
+O módulo deverá implementar mecanismos e funcionalidades que permitam a consulta
+de toda a informação associada aos documentos. A consulta deverá ser possível mediante a
+definição de critérios de pesquisa.
+
+4. Requisitos funcionais
+4.1.
+
+Gestão dos processos
+
+A interface [I1] para a gestão dos processos deverá permitir filtrar, criar e editar processos. Os
+critérios de filtragem são os campos definidos para o processo:
+
+
+Código;
+
+
+
+Nome ;
+
+
+
+Objetivo;
+
+
+
+Âmbito;
+
+A pesquisa é um input único que percorre os campos definidos por peso, devolvendo registos
+únicos por ordem de peso (ex. Códigos → Nomes → Objetivo → Âmbito).
+
+[I1] Interface 1 – Lista de Processos
+Nesta interface deverá ser possível consultar os processos existentes, mediante um conjunto
+de critérios de pesquisa, bem como criar novos processos. A ordem do resultado de pesquisa
+será alfabética dentro dos pesos já identificados sendo Código, Nome, Objetivo e por fim
+Âmbito. A tabela [I1.TB01] terá também a possibilidade de alterar esta ordem em cada coluna,
+ao clicar, os pesos deixam de estar em efeito passando só a ordem da coluna selecionada. A
+ordem é acumulativa, o que cruza com a ordem das colunas selecionadas.
+[I1.TXT01] Input Pesquisa
+Campo de texto que permite pesquisar processos pelo seu código, Nome, Objetivo e Âmbito.
+[I1.BT01] Pesquisar
+Ao clicar no botão [I1.BT01] deverá ser realizada a pesquisa de processos de acordo com os
+critérios indicados no campo [I1.TXT01].
+Caso existam registos para apresentar, os mesmos devem ser apresentados de acordo com a
+tabela [I1.TB01].
+
+outubro 2026 - 7
+
+[I1.TB01] Tabela com a lista de processos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+Código do processo;
+
+
+
+Nome;
+
+
+
+Versão;
+
+
+
+Data de elaboração;
+
+A lista deverá incluir todos os processos que correspondam aos critérios de pesquisa indicados.
+A ordem do resultado de pesquisa será alfabética dentro dos pesos já identificados sendo
+Código, Nome, Objetivo e por fim Âmbito. A tabela [I1.TB01] terá também a possibilidade de
+alterar esta ordem em cada coluna, ao clicar, os pesos deixam de estar em efeito passando só
+a ordem da coluna selecionada. A ordem é acumulativa, o que cruza com a ordem das colunas
+selecionadas.
+Associado a cada processo devem ser disponibilizados os seguintes botões de ação: Detalhe
+[I1.TB01.BT01], Edição [I1.TB01.BT02], Sub processos [I1.TB01.BT03] e Documentos
+[I1.TB01.BT04].
+[I1.TB01.BT01] Detalhe
+Este botão permite aceder à informação detalhada do processo, a qual será apresentada na
+interface [I3].
+[I1.TB01.BT02] Edição
+Este botão permite aceder à interface [I4].
+[I1.TB01.BT03] Sub processos
+Este botão deve permitir aceder à informação relativa aos sub processos associados ao
+processo correspondente, os quais são apresentados na interface [I5] com a opção de pesquisa
+pelo código de processo pai já inserida automaticamente.
+[I1.TB01.BT04] Documentos
+Este botão deve permitir aceder à informação relativa aos documentos associados ao processo
+correspondente, os quais são apresentados na interface [I9] com a opção de pesquisa pelo
+código de processo pai já inserida automaticamente.
+[I1.BT02] Adicionar Processo
+Este botão permite aceder à interface [I2] com os campos editáveis, permitindo a criação de
+um novo processo.
+outubro 2026 - 8
+
+[I2] Interface 2 – Criação de Processo
+Nesta interface o utilizador poderá introduzir a informação necessária para a criação de um
+novo processo. Sendo uma interface exclusiva de criação, todos os campos apresentados
+estarão vazios e disponíveis para preenchimento.
+[I2.TXT01] Código
+Campo de texto para indicação do código do processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+•
+
+Verificar se o código é único no sistema.
+
+[I2.TXT02] Nome
+Campo de texto para indicação do nome do processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I2.TXT03] Objetivo
+Campo de texto para indicação do objetivo do processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I2.TXT04] Âmbito
+Campo de texto para indicação do âmbito do processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceitando apenas espaços em branco.
+
+[I2.DT01] Data de Elaboração
+Campo de data para indicação da data de elaboração do processo.
+outubro 2026 - 9
+
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+[I2.TB01] Tabela de Donos do Processo
+Tabela para visualização e gestão dos utilizadores responsáveis pelo processo (serviço / UO). A
+lista tem preenchimento obrigatório, devendo existir sempre pelo menos um dono associado
+ao processo. Por omissão é inserido logo de inicio automaticamente o utilizador que está a
+criar o processo. Colunas apresentadas: Nome, Email e Ações.
+[I2.TB01.TXT01] Input de Email Campo de texto para inserção do endereço de email do
+utilizador a adicionar como dono do processo.
+[I2.TB01.BT01] Adicionar Botão para incluir o utilizador (indicado no campo [I2.TB01.TXT01])
+na tabela de donos do processo.
+Validação do campo:
+•
+
+Verificação de email válido
+
+•
+
+Verificação de e-mail existente
+
+[I2.TB01.BT02] Remover Ação disponível em cada linha da tabela, permitindo retirar o
+utilizador correspondente do papel de dono do processo.
+Validação do campo:
+•
+
+Verificar se existem mais donos do documento, bloquear a demonstrar aviso se for o
+ultimo dono.
+
+[I2.TXT05] Versão
+Campo de texto para indicação da versão do processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I2.DT02] Data de revisão – Dúvida se na criação não deve ficar igual à data de elaboração.
+Campo de data para indicação da data de revisão do processo.
+Validação do campo:
+outubro 2026 - 10
+
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+[I2.BT01] Guardar
+Permite guardar a informação inserida.
+Deverá ser possível guardar a informação inserida nos campos editáveis, validando para o
+efeito os campos preenchidos.
+[I2.BT02] Voltar
+O botão [I2.BT02] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+[I3] Interface 3 – Detalhe
+Nesta interface é apresentada a informação detalhada do processo, sem possibilidade de
+alteração, alterações são feitas na [I4]. Todos os campos relativos ao processo na [I3] são
+imutáveis.
+[I3.TXT01] Código
+Campo de texto para indicação do código do processo.
+Campo imutável.
+[I3.TXT02] Nome
+Campo de texto para indicação do nome do processo.
+Campo imutável.
+[I3.TXT03] Objetivo
+Campo de texto para indicação do objetivo do processo.
+Campo imutável.
+[I3.TXT04] Âmbito
+Campo de texto para indicação do âmbito do processo.
+Campo imutável.
+[I3.DT01] Data de Elaboração
+Campo de data para indicação da data de elaboração do processo.
+
+outubro 2026 - 11
+
+Campo imutável.
+[I3.TB01] Tabela de Donos do Processo
+Tabela para visualização e gestão dos utilizadores responsáveis pelo processo (serviço / UO). A
+lista tem as colunas apresentadas: Nome, Email.
+Campo imutável.
+[I3.TXT05] Versão
+Campo de texto para indicação da versão do processo.
+Campo imutável.
+[I3.DT02] Data de revisão
+Campo de data para indicação da data de revisão do processo.
+Campo imutável.
+[I3.TB02] Tabela com a lista de sub processos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+Código do sub processo;
+
+
+
+Nome;
+
+
+
+Versão;
+
+
+
+Data de elaboração;
+
+A lista deverá incluir todos os sub processos associados ao processo do detalhe que está a ser
+visualizado.
+Associado a cada sub processo devem ser disponibilizados os seguintes botões de ação:
+Detalhe [I3.TB02.BT01] e Edição [I3.TB02.BT02].
+[I3.TB02.BT01] Detalhe
+Este botão permite aceder à informação detalhada do sub processo, a qual será apresentada
+na interface [I7].
+[I3.TB02.BT02] Editar
+Este botão permite aceder à interface [I8] .
+
+outubro 2026 - 12
+
+[I3.TB03] Tabela com a lista de documentos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+
+
+
+
+Código do documento;
+Designação;
+Versão;
+Data de elaboração;
+Tipo.
+
+A lista deverá incluir todos os documentos associados ao processo do detalhe que está a ser
+visualizado.
+Associado a cada documento devem ser disponibilizados os seguintes botões de ação: Detalhe
+[I3.TB03.BT01] e Edição [I3.TB03.BT02].
+[I3.TB03.BT01] Detalhe
+Este botão permite aceder à informação detalhada do documento, a qual será apresentada na
+interface [I11].
+[I3.TB03.BT02] Editar
+Este botão permite aceder à interface [I12] com a opção de revisão ativa.
+[I3.TB04] Tabela de Histórico de Versões
+Tabela para visualização de todas as versões anteriores do processo selecionado. A informação
+a apresentar nesta tabela deverá incluir:
+• Código do processo;
+• Nome;
+• Versão;
+• Data de revisão.
+A lista deverá estar ordenada de forma decrescente pela data de revisão (da mais recente para
+a mais antiga). Associado a cada registo histórico deve ser disponibilizado o botão de ação:
+Detalhe Histórico [I3.TB04.BT01].
+[I3.TB04.BT01] Detalhe Histórico
+Este botão permite aceder à informação detalhada daquela versão específica do processo, a
+qual será apresentada na interface de observação histórica [I13].
+
+outubro 2026 - 13
+
+[I3.BT01] Nova Revisão
+O botão [I3.BT03] permite criar uma nova revisão do processo, mantendo o histórico da versão
+anterior.
+Ao criar uma nova revisão, os campos editáveis ficam disponíveis para alteração.
+
+[I4] Interface 4 – Revisão
+Nesta interface é apresentada a informação detalhada do processo, com possibilidade de
+alteração de informação e adicionar novos sub processos e documentos. Nem todos os campos
+são editáveis.
+[I4.TXT01] Código
+Campo de texto para indicação do código do processo.
+Campo imutável.
+[I4.TXT02] Nome
+Campo de texto para indicação do nome do processo.
+Campo imutável. – Dúvida.
+[I4.TXT03] Objetivo
+Campo de texto para indicação do objetivo do processo.
+Campo imutável. – Dúvida.
+[I4.TXT04] Âmbito
+Campo de texto para indicação do âmbito do processo.
+Campo imutável. - Dúvida.
+[I4.DT01] Data de Elaboração
+Campo de data para indicação da data de elaboração do processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+[I4.TB01] Tabela de Donos do Processo
+
+outubro 2026 - 14
+
+Tabela para visualização e gestão dos utilizadores responsáveis pelo processo (serviço / UO). A
+lista tem preenchimento obrigatório, devendo existir sempre pelo menos um dono associado
+ao processo. Colunas apresentadas: Nome, Email e Ações.
+[I4.TB01.TXT01] Input de Email Campo de texto para inserção do endereço de email do
+utilizador a adicionar como dono do processo.
+[I4.TB01.BT01] Adicionar Botão para incluir o utilizador (indicado no campo [I4.TB01.TXT01])
+na tabela de donos do processo.
+Validação do campo:
+•
+
+Verificação de email válido
+
+•
+
+Verificação de e-mail existente
+
+[I4.TB01.BT02] Remover Ação disponível em cada linha da tabela, permitindo retirar o
+utilizador correspondente do papel de dono do processo.
+Validação do campo:
+•
+
+Verificar se existem mais donos do documento, bloquear a demonstrar aviso se for o
+ultimo dono.
+
+[I4.TXT05] Versão
+Campo de texto para indicação da versão do processo.
+O campo deverá estar vazio para preenchimento do utilizador.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I4.DT02] Data de revisão
+Campo de data para indicação da data de revisão do processo.
+O campo deverá estar vazio para preenchimento do utilizador.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+outubro 2026 - 15
+
+[I4.TB02] Tabela com a lista de sub processos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+Código do sub processo;
+
+
+
+Nome;
+
+
+
+Versão;
+
+
+
+Data de elaboração;
+
+A lista deverá incluir todos os sub processos associados ao processo do detalhe que está a ser
+visualizado.
+Associado a cada sub processo devem ser disponibilizados os seguintes botões de ação:
+Detalhe [I4.TB02.BT01] e Edição [I4.TB02.BT02].
+[I4.TB02.BT01] Detalhe
+Este botão permite aceder à informação detalhada do sub processo, a qual será apresentada
+na interface [I7].
+[I4.TB02.BT02] Editar
+Este botão permite aceder à interface [I8] com a opção de revisão ativa.
+[I4.TB03] Tabela com a lista de documentos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+
+
+
+
+Código do documento;
+Designação;
+Versão;
+Data de elaboração;
+Tipo.
+
+A lista deverá incluir todos os documentos associados ao processo do detalhe que está a ser
+visualizado.
+Associado a cada documento devem ser disponibilizados os seguintes botões de ação: Detalhe
+[I4.TB03.BT01] e Edição [I4.TB03.BT02].
+[I4.TB03.BT01] Detalhe
+Este botão permite aceder à informação detalhada do documento, a qual será apresentada na
+interface [I11].
+
+outubro 2026 - 16
+
+[I4.TB03.BT02] Editar
+Este botão permite aceder à interface [I12].
+[I4.BT01] Guardar
+Permite guardar a informação inserida.
+Deverá ser possível guardar a informação inserida nos campos editáveis, validando para o
+efeito os campos preenchidos.
+[I4.BT02] Voltar
+O botão [I4.BT02] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+4.2.
+
+Gestão de Sub Processos
+
+A interface [I5] para a gestão dos sub processos deverá permitir filtrar, criar e editar sub
+processos associados a um processo pai. Os critérios de filtragem são os campos definidos para
+o sub processo:
+
+
+Código do processo Pai;
+
+
+
+Código do sub processo;
+
+
+
+Nome;
+
+
+
+Objetivo;
+
+
+
+Âmbito;
+
+A pesquisa é uma união do input [I5.LB01] com os critérios do input [I5.TXT01] que percorre
+os campos definidos por peso, devolvendo registos únicos por ordem de peso.
+
+[I5] Interface 5 – Lista de Sub processos
+Nesta interface deverá ser possível consultar os sub processos associados a um processo,
+mediante um conjunto de critérios de pesquisa, bem como criar novos sub processos.
+A ordem do resultado de pesquisa será alfabética dentro dos pesos já identificados sendo
+Código do processo Pai, Código do sub processo, Nome, Objetivo e por fim Âmbito. A tabela
+[I5.TB01] terá também a possibilidade de alterar esta ordem em cada coluna, ao clicar, os
+pesos deixam de estar em efeito passando só a ordem da coluna selecionada. A ordem é
+acumulativa, o que cruza com a ordem das colunas selecionadas.
+[I5.LB01] Código Processo Pai
+Apresenta a lista dos processos existentes, ordenada por ordem alfabética crescente do nome
+com possibilidade de escrita.
+
+outubro 2026 - 17
+
+Por omissão, deverá ser selecionado o processo a partir do qual se acedeu a esta interface, se
+origem da pesquisa de processos (Pai).
+[I5.TXT01] Input Pesquisa
+Campo de texto que permite pesquisar sub processos pelo seu código, Nome, Objetivo e
+Âmbito.
+[I5.BT01] Pesquisar
+Ao clicar no botão [I5.BT01] deverá ser realizada a pesquisa de sub processos de acordo com
+os critérios indicados no campo [I5.TXT01], considerando o processo pai selecionado em
+[I5.LB01].
+Caso existam registos para apresentar, os mesmos devem ser apresentados de acordo com a
+tabela [I5.TB01].
+[I5.TB01] Tabela com a lista de sub processos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+Código do processo Pai;
+
+
+
+Código do sub processo;
+
+
+
+Nome;
+
+
+
+Versão;
+
+
+
+Data de elaboração;
+
+A lista deverá incluir todos os sub processos associados ao processo pai selecionado que
+correspondam aos critérios de pesquisa indicados.
+A ordem do resultado de pesquisa será alfabética dentro dos pesos já identificados sendo
+Código do processo Pai, Código do sub processo, Nome, Objetivo e por fim Âmbito. A tabela
+[I5.TB01] terá também a possibilidade de alterar esta ordem em cada coluna, ao clicar, os
+pesos deixam de estar em efeito passando só a ordem da coluna selecionada. A ordem é
+acumulativa, o que cruza com a ordem das colunas selecionadas.
+Associado a cada sub processo devem ser disponibilizados os seguintes botões de ação:
+Detalhe [I5.TB01.BT01], Edição [I5.TB01.BT02] e Documentos [I5.TB01.BT03].
+[I5.TB01.BT01] Detalhe
+Este botão permite aceder à informação detalhada do sub processo, a qual será apresentada
+na interface [I7].
+
+outubro 2026 - 18
+
+[I5.TB01.BT02] Edição
+Este botão permite aceder à interface [I8].
+[I5.TB01.BT03] Documentos
+Este botão deve permitir aceder à informação relativa aos documentos associados ao sub
+processo correspondente, os quais são apresentados na interface [I9].
+[I5.BT02] Adicionar Sub processo
+Este botão permite aceder à interface [I10] com os campos editáveis, permitindo a criação de
+um novo sub processo.
+
+[I6] Interface 6 – Criação de Sub processo
+Nesta interface o utilizador poderá introduzir a informação necessária para a criação de um
+novo sub processo. Sendo uma interface exclusiva de criação, todos os campos apresentados
+estarão vazios e disponíveis para preenchimento.
+[I6.LB01] Processo Pai
+Lista os processos Pai existentes, ordenada por ordem alfabética crescente do nome.
+Por omissão, deverá ser selecionado o processo Pai a partir do qual se acedeu a esta interface.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+[I6.TXT01] Código
+Campo de texto para indicação do código do sub processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I6.TXT02] Nome
+Campo de texto para indicação do nome e versão do sub processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+outubro 2026 - 19
+
+[I6.TXT03] Objetivo
+Campo de texto para indicação do objetivo do sub processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I6.TXT04] Âmbito
+Campo de texto para indicação do âmbito do sub processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I6.DT01] Data de Elaboração – Dúvida se na criação não deve ficar igual à data de elaboração.
+Campo de data para indicação da data de elaboração do sub processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+[I6.TB01] Tabela de Donos do Sub Processo
+Tabela para visualização e gestão dos utilizadores responsáveis pelo sub processo (serviço /
+UO). A lista tem preenchimento obrigatório, devendo existir sempre pelo menos um dono
+associado ao processo. Automaticamente é inserido o utilizador que criou o sub processo.
+Colunas apresentadas: Nome, Email e Ações.
+[I6.TB01.TXT01] Input de Email Campo de texto para inserção do endereço de email do
+utilizador a adicionar como dono do processo.
+[I6.TB01.BT01] Adicionar Botão para incluir o utilizador (indicado no campo [I6.TB01.TXT01])
+na tabela de donos do processo.
+Validação do campo:
+•
+
+Verificação de email válido
+
+•
+
+Verificação de e-mail existente
+outubro 2026 - 20
+
+[I6.TB01.BT02] Remover Ação disponível em cada linha da tabela, permitindo retirar o
+utilizador correspondente do papel de dono do processo.
+Validação do campo:
+•
+
+Verificar se existem mais donos do documento, bloquear a demonstrar aviso se for o
+ultimo dono.
+
+[I6.TXT05] Versão
+Campo de texto para indicação da versão do sub processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I6.DT02] Data de revisão
+Campo de data para indicação da data de revisão do sub processo.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+[I6.BT01] Guardar
+Permite guardar a informação inserida.
+Deverá ser possível guardar a informação inserida nos campos editáveis, validando para o
+efeito os campos preenchidos.
+[I6.BT02] Voltar
+O botão [I6.BT02] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+[I7] Interface 7 – Detalhe
+Nesta interface é apresentada a informação detalhada do sub processo, sem possibilidade de
+alteração, alterações são feitas na [I8]. Todos os campos relativos ao processo na [I7] são
+imutáveis.
+[I7.LB01] Processo Pai
+Lista os processos Pai existentes, ordenada por ordem alfabética crescente do nome.
+outubro 2026 - 21
+
+Campo imutável
+[I7.TXT01] Código
+Campo de texto para indicação do código do sub processo.
+Campo imutável
+[I7.TXT02] Nome
+Campo de texto para indicação do nome e versão do sub processo.
+Campo imutável
+[I7.TXT03] Objetivo
+Campo de texto para indicação do objetivo do sub processo.
+Campo imutável
+[I7.TXT04] Âmbito
+Campo de texto para indicação do âmbito do sub processo.
+Campo imutável
+[I7.DT01] Data de Elaboração
+Campo de data para indicação da data de elaboração do sub processo.
+Campo imutável
+[I7.TB01] Tabela de Donos do Sub Processo
+Tabela para visualização e gestão dos utilizadores responsáveis pelo sub processo (serviço /
+UO). A lista tem as colunas apresentadas: Nome, Email.
+Campo imutável.
+[I7.TXT06] Versão
+Campo de texto para indicação da versão do sub processo.
+Campo imutável
+[I7.DT02] Data de revisão
+Campo de data para indicação da data de revisão do sub processo.
+Campo imutável
+
+outubro 2026 - 22
+
+[I7.TB01] Tabela com a lista de documentos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+
+
+
+
+Código do documento;
+Designação;
+Versão;
+Data de elaboração;
+Tipo.
+
+A lista deverá incluir todos os documentos associados ao sub processo do detalhe que está a
+ser visualizado.
+Associado a cada documento devem ser disponibilizados os seguintes botões de ação: Detalhe
+[I7.TB01.BT01] e Edição [I7.TB01.BT02].
+[I7.TB01.BT01] Detalhe
+Este botão permite aceder à informação detalhada do documento, a qual será apresentada na
+interface [I11].
+[I7.TB01.BT02] Editar
+Este botão permite aceder à interface [I12] .
+[I7.TB02] Tabela de Histórico de Versões
+Tabela para visualização de todas as versões anteriores do sub processo selecionado. A
+informação a apresentar nesta tabela deverá incluir:
+• Código do sub processo;
+• Nome;
+• Versão;
+• Data de revisão.
+A lista deverá estar ordenada de forma decrescente pela data de revisão. Associado a cada
+registo histórico deve ser disponibilizado o botão de ação: Detalhe Histórico [I7.TB02.BT01].
+[I7.TB02.BT01] Detalhe Histórico
+Este botão permite aceder à informação detalhada daquela versão específica do sub processo,
+a qual será apresentada na interface de observação histórica [I14].
+[I7.BT01] Voltar
+O botão [I7.BT01] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+outubro 2026 - 23
+
+[I7.BT02] Nova Revisão
+O botão [I7.BT02] permite criar uma nova revisão do sub processo, mantendo o histórico da
+versão anterior.
+Ao criar uma nova revisão, os campos editáveis ficam disponíveis para alteração.
+
+[I8] Interface 8 – Revisão
+Nesta interface é apresentada a informação detalhada do sub processo, com possibilidade de
+alteração de informação. Nem todos os campos são editáveis.
+[I8.LB01] Processo Pai
+Lista os processos Pai existentes, ordenada por ordem alfabética crescente do nome.
+Campo imutável
+[I8.TXT01] Código
+Campo de texto para indicação do código do sub processo.
+Campo imutável
+[I8.TXT02] Nome
+Campo de texto para indicação do nome e versão do sub processo.
+Campo imutável - Dúvida
+[I8.TXT03] Objetivo
+Campo de texto para indicação do objetivo do sub processo.
+Campo imutável - Dúvida
+[I8.TXT04] Âmbito
+Campo de texto para indicação do âmbito do sub processo.
+Campo imutável - Dúvida
+[I8.DT01] Data de Elaboração
+Campo de data para indicação da data de elaboração do sub processo.
+Campo imutável - Dúvida
+[I8.TB01] Tabela de Donos do Sub Processo
+
+outubro 2026 - 24
+
+Tabela para visualização e gestão dos utilizadores responsáveis pelo sub processo (serviço /
+UO). A lista tem preenchimento obrigatório, devendo existir sempre pelo menos um dono
+associado ao processo. Colunas apresentadas: Nome, Email e Ações.
+[I8.TB01.TXT01] Input de Email Campo de texto para inserção do endereço de email do
+utilizador a adicionar como dono do processo.
+[I8.TB01.BT01] Adicionar Botão para incluir o utilizador (indicado no campo [I4.TB01.TXT01])
+na tabela de donos do processo.
+Validação do campo:
+•
+
+Verificação de email válido
+
+•
+
+Verificação de e-mail existente
+
+[I8.TB01.BT02] Remover Ação disponível em cada linha da tabela, permitindo retirar o
+utilizador correspondente do papel de dono do processo.
+Validação do campo:
+•
+
+Verificar se existem mais donos do documento, bloquear a demonstrar aviso se for o
+ultimo dono.
+
+[I8.TXT05] Versão
+Campo de texto para indicação da versão do sub processo.
+O campo deverá estar vazio para preenchimento do utilizador.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I8.DT02] Data de revisão
+Campo de data para indicação da data de revisão do sub processo.
+O campo deverá estar vazio para preenchimento do utilizador.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+outubro 2026 - 25
+
+[I8.TB02] Tabela com a lista de documentos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+
+
+
+
+Código do documento;
+Designação;
+Versão;
+Data de elaboração;
+Tipo.
+
+A lista deverá incluir todos os documentos associados ao sub processo do detalhe que está a
+ser visualizado.
+Associado a cada documento devem ser disponibilizados os seguintes botões de ação: Detalhe
+[I8.TB02.BT01] e Edição [I8.TB02.BT02].
+[I8.TB02.BT01] Detalhe
+Este botão permite aceder à informação detalhada do documento, a qual será apresentada na
+interface [I11].
+[I8.TB02.BT02] Editar
+Este botão permite aceder à interface [I12].
+[I8.BT01] Guardar
+Permite guardar a informação inserida.
+Deverá ser possível guardar a informação inserida nos campos editáveis, validando para o
+efeito os campos preenchidos.
+[I8.BT02] Voltar
+O botão [I8.BT02] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+4.3.
+
+Gestão de Documentos
+
+A interface [I9] para a gestão dos documentos deverá permitir filtrar, criar e editar
+documentos associados a processos e sub processos. Os critérios de filtragem são os campos
+definidos para o documento:
+
+
+Código de Processo Pai;
+
+
+
+Código Sub processo;
+
+
+
+Código do documento;
+
+outubro 2026 - 26
+
+
+
+Designação;
+
+A pesquisa é um input único que percorre os campos definidos por peso, devolvendo registos
+únicos por ordem de peso sendo Código de Processo Pai → Código Sub Processo → Código do
+documento → Designação.
+A ordem do resultado de pesquisa será alfabética dentro dos pesos já identificados sendo
+Código do processo Pai, Código do sub processo, Código do Documento e por fim Designação.
+A tabela [I9.TB01] terá também a possibilidade de alterar esta ordem em cada coluna, ao
+clicar, os pesos deixam de estar em efeito passando só a ordem da coluna selecionada. A
+ordem é acumulativa, o que cruza com a ordem das colunas selecionadas.
+
+[I9] Interface 9 – Lista de Documentos
+Nesta interface deverá ser possível consultar os documentos associados a um processo ou sub
+processo, mediante um conjunto de critérios de pesquisa, bem como criar novos documentos.
+[I9.TXT01] Input Pesquisa
+Campo de texto que permite pesquisar documentos pelo seu código de Processo ou Sub
+processo associado, Designação e Código do Documento.
+[I9.BT01] Pesquisar
+Ao clicar no botão [I9.BT01] deverá ser realizada a pesquisa de documentos de acordo com os
+critérios indicados no campo [I9.TXT01].
+Caso existam registos para apresentar, os mesmos devem ser apresentados de acordo com a
+tabela [I9.TB01].
+[I9.TB01] Tabela com a lista de documentos
+A informação a apresentar nesta tabela deverá incluir:
+
+
+
+
+
+
+
+Código do documento;
+Código do processo / sub processo associado;
+Designação;
+Versão;
+Data de elaboração;
+Tipo.
+
+A lista deverá incluir todos os documentos associados ao processo ou sub processo
+selecionado que correspondam aos critérios de pesquisa indicados.
+A ordem do resultado de pesquisa será alfabética dentro dos pesos já identificados sendo
+Código do processo Pai, Código do sub processo, Código do Documento e por fim Designação.
+A tabela [I9.TB01] terá também a possibilidade de alterar esta ordem em cada coluna, ao
+
+outubro 2026 - 27
+
+clicar, os pesos deixam de estar em efeito passando só a ordem da coluna selecionada. A
+ordem é acumulativa, o que cruza com a ordem das colunas selecionadas.
+Associado a cada documento devem ser disponibilizados os seguintes botões de ação: Detalhe
+[I9.TB01.BT01] e Edição [I9.TB01.BT02].
+[I9.TB01.BT01] Detalhe
+Este botão permite aceder à informação detalhada do documento, a qual será apresentada na
+interface [I11].
+[I9.TB01.BT02] Editar
+Este botão permite aceder à interface [I12] .
+[I9.BT02] Adicionar Documento
+Este botão permite aceder à interface [I10] com os campos editáveis, permitindo a criação de
+um novo documento.
+
+[I10] Interface 10 – Criação de Documento
+Nesta interface o utilizador poderá introduzir a informação necessária para a criação de um
+novo documento. Sendo uma interface exclusiva de criação, todos os campos apresentados
+estarão vazios e disponíveis para preenchimento.
+[I10.LB01] Processo Associado
+Lista os processos e sub processos existentes, ordenada por ordem alfabética crescente do
+nome.
+Por omissão, deverá ser selecionado o processo ou sub processo a partir do qual se acedeu a
+esta interface.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+[I10.TXT01] Código
+Campo de texto para indicação do código do documento.
+Validação de campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+•
+
+Verificação de Código único no sistema.
+
+outubro 2026 - 28
+
+[I10.TXT02] Designação
+Campo de texto para indicação da designação do documento.
+Validação de campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I10.TXT03] Versão
+Campo de texto para indicação da versão do documento.
+Validação de campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+[I10.DT01] Data de Elaboração – Dúvida se na criação não deve ficar igual à data de
+elaboração.
+Campo de data para indicação da data de elaboração do documento.
+Validação de campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+[I10.TB01] Tabela de Donos do Documento
+Tabela para visualização e gestão dos utilizadores responsáveis pelo documento (serviço /
+UO). A lista tem preenchimento obrigatório, devendo existir sempre pelo menos um dono
+associado ao documento. Colunas apresentadas: Nome, Email e Ações.
+[I10.TB01.TXT01] Input de Email
+Campo de texto para inserção do endereço de email do utilizador a adicionar como dono do
+documento.
+[I10.TB01.BT01] Adicionar
+Botão para incluir o utilizador (indicado no campo [I10.TB01.TXT01]) na tabela de donos do
+processo.
+Validação do campo:
+outubro 2026 - 29
+
+•
+
+Verificação de email válido
+
+•
+
+Verificação de e-mail existente
+
+[I10.TB01.BT02] Remover Ação disponível em cada linha da tabela, permitindo retirar o
+utilizador correspondente do papel de dono do documento.
+Validação do campo:
+•
+
+Verificar se existem mais donos do documento, bloquear a demonstrar aviso se for o
+ultimo dono.
+
+[I8.DT02] Data de revisão
+Campo de data para indicação da data de revisão do documento. – Dúvida se na criação não
+deve ficar igual à data de elaboração.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita datas futuras.
+
+•
+
+Formato de data dd-mm-yyyy
+
+[I10.LB02] Tipo
+Lista os tipos de documento existentes:
+
+
+
+
+
+Instrumento;
+Regulamento;
+Orientação;
+Impresso.
+
+Por omissão, deve ser selecionada a opção “Selecione o Tipo”.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+[I10.UPL01] Upload de Ficheiro
+Campos para upload dos ficheiros correspondentes aos documentos.
+Deverá existir um campo específico para cada tipo disponibilizado.
+Validação do campo:
+•
+
+Deverá ser validado o formato do ficheiro de acordo com os formatos autorizados
+definidos.
+outubro 2026 - 30
+
+•
+
+Upload obrigatório de pelo menos um tipo de ficheiro.
+
+[I10.BT01] Download
+O botão [I10.BT01] permite realizar download dos ficheiros. Esta opção poderá ser um link que
+é por omissão a funcionalidade do Drupal.
+[I10.BT02] Guardar
+Permite guardar a informação inserida.
+Deverá ser possível guardar a informação inserida nos campos editáveis, validando para o
+efeito os campos preenchidos.
+[I10.BT03] Voltar
+O botão [I10.BT03] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+[I11] Interface 11 – Detalhe de Documento
+Nesta interface é apresentada a informação detalhada do documento, sem possibilidade de
+alteração, alterações são feitas na [I12]. Todos os campos relativos ao processo na [I11] são
+imutáveis.
+[I11.LB01] Processo Associado
+Demonstra o Processo ou Sub Processo associado ao Documento.
+Campo imutável.
+[I11.TXT01] Código
+Campo de texto para indicação do código do documento.
+Campo imutável.
+[I11.TXT02] Designação
+Campo de texto para indicação da designação do documento.
+Campo imutável.
+[I10.TXT03] Versão
+Campo de texto para indicação da versão do documento.
+Campo imutável.
+
+outubro 2026 - 31
+
+[I11.DT01] Data de Elaboração
+Campo de data para indicação da data de elaboração do documento.
+Campo imutável.
+[I11.TB01] Tabela de Donos do Documento
+Tabela para visualização e gestão dos utilizadores responsáveis pelo documento (serviço /
+UO). A lista tem preenchimento obrigatório, devendo existir sempre pelo menos um dono
+associado ao documento. Colunas apresentadas: Nome, Email.
+Campo imutável.
+[I11.DT02] Data de revisão
+Campo de data para indicação da data de revisão do documento.
+Campo imutável.
+[I11.LB02] Tipo
+Demonstra o tipo escolhido para o documento.
+Campo Imutável.
+[I11.UPL01] Upload de Ficheiro
+Campos para upload dos ficheiros correspondentes aos documentos.
+Deverá existir um campo específico para cada tipo disponibilizado.
+Campo imutável.
+[I11.TB02] Tabela de Histórico de Versões
+Tabela para visualização de todas as versões anteriores do documento selecionado. A
+informação a apresentar nesta tabela deverá incluir:
+• Código do documento;
+• Designação;
+• Versão;
+• Data de revisão.
+A lista deverá estar ordenada de forma decrescente pela data de revisão. Associado a cada
+registo histórico deve ser disponibilizado o botão de ação: Detalhe Histórico [I11.TB02.BT01].
+
+outubro 2026 - 32
+
+[I11.TB02.BT01] Detalhe Histórico
+Este botão permite aceder à informação detalhada daquela versão específica do documento, a
+qual será apresentada na interface de observação histórica [I15].
+[I11.BT01] Download
+O botão [I11.BT01] permite realizar download dos ficheiros. Esta opção poderá ser um link que
+é por omissão a funcionalidade do Drupal.
+[I11.BT02] Nova Revisão
+O botão [I11.BT02] permite criar uma nova revisão do documento, mantendo o histórico da
+versão anterior.
+Ao criar uma nova revisão, o utilizador é remetido para [I12].
+[I11.BT03] Voltar
+O botão [I11.BT03] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+[I12] Interface 12 – Revisão de Documento
+Nesta interface é apresentada a informação detalhada do processo, com possibilidade de
+alteração de informação. Nem todos os campos são editáveis.
+[I12.LB01] Processo Associado
+Demonstra o Processo ou Sub Processo associado ao Documento.
+Campo imutável.
+[I12.TXT01] Código
+Campo de texto para indicação do código do documento.
+Campo imutável.
+[I12.TXT02] Designação
+Campo de texto para indicação da designação do documento.
+Campo imutável. – Dúvida.
+[I12.TXT03] Versão
+Campo de texto para indicação da versão do documento.
+O campo encontra-se vazio nesta interface para que o utilizador assim o preencha.
+
+outubro 2026 - 33
+
+Validação de campo:
+•
+
+Preenchimento obrigatório.
+
+•
+
+Não aceita apenas espaços em branco.
+
+•
+
+Verificação se a versão é única.
+
+[I12.DT01] Data de Elaboração
+Campo de data para indicação da data de elaboração do documento.
+Campo imutável - Dúvida
+[I12.TB01] Tabela de Donos do Documento
+Tabela para visualização e gestão dos utilizadores responsáveis pelo documento (serviço /
+UO). A lista tem preenchimento obrigatório, devendo existir sempre pelo menos um dono
+associado ao documento. Colunas apresentadas: Nome, Email e Ações.
+[I12.TB01.TXT01] Input de Email Campo de texto para inserção do endereço de email do
+utilizador a adicionar como dono do documento.
+[I12.TB01.BT01] Adicionar Botão para incluir
+[I10.TB01.TXT01]) na tabela de donos do processo.
+
+o
+
+utilizador
+
+(indicado
+
+no
+
+campo
+
+Validação do campo:
+•
+
+Verificação de email válido
+
+•
+
+Verificação de e-mail existente
+
+[I12.TB01.BT02] Remover Ação disponível em cada linha da tabela, permitindo retirar o
+utilizador correspondente do papel de dono do documento.
+Validação do campo:
+•
+
+Verificar se existem mais donos do documento, bloquear a demonstrar aviso se for o
+ultimo dono.
+
+[I12.DT02] Data de revisão
+Campo de data para indicação da data de revisão do documento.
+O campo encontra-se vazio nesta interface para que o utilizador assim o preencha.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+outubro 2026 - 34
+
+•
+
+Formato de data dd-mm-yyyy.
+
+•
+
+Não aceita datas futuras.
+
+[I12.LB02] Tipo
+Lista os tipos de documento existentes:
+
+
+
+
+
+Instrumento;
+Regulamento;
+Orientação;
+Impresso.
+
+Por omissão, deve ser selecionada a opção já escolhida na versão ainda ativa.
+Validação do campo:
+•
+
+Preenchimento obrigatório.
+
+[I12.UPL01] Upload de Ficheiro
+Campos para upload dos ficheiros correspondentes aos documentos.
+Deverá existir um campo específico para cada tipo disponibilizado.
+Validação do campo:
+•
+
+Deverá ser validado o formato do ficheiro de acordo com os formatos autorizados
+definidos.
+
+•
+
+Upload obrigatório de pelo menos um tipo de ficheiro.
+
+[I12.BT01] Download
+O botão [I6.BT01] permite realizar download dos ficheiros. Esta opção poderá ser um link que
+é por omissão a funcionalidade do Drupal.
+[I12.BT02] Guardar
+Permite guardar a informação inserida.
+Deverá ser possível guardar a informação inserida nos campos editáveis, validando para o
+efeito os campos preenchidos.
+[I12.BT03] Voltar
+O botão [I12.BT04] permite voltar à interface anterior da qual se acedeu a esta interface.
+
+outubro 2026 - 35
+
+4.4.
+
+Histórico
+
+[I13] Interface 13 – Detalhe Histórico de Processo
+Nesta interface é apresentada a informação detalhada de uma versão anterior (histórica) do
+processo. Sendo um registo histórico, o modo é de estrita observação, pelo que todos os
+campos são apresentados num formato de leitura e são imutáveis.
+[I13.TXT01] a [I13.DT02] Campos de Informação do Processo
+Todos os campos descritivos do processo (Código, Nome, Objetivo, Âmbito, Data de
+Elaboração, Versão e Data de Revisão) correspondentes à versão selecionada. Campos
+imutáveis.
+[I13.TB01] Tabela de Donos do Processo
+Tabela com os utilizadores responsáveis pelo processo no momento em que esta versão estava
+ativa. Colunas apresentadas: Nome, Email. Campo imutável.
+[I13.TB02] Tabela com a lista de sub processos
+A informação a apresentar nesta tabela deverá incluir os sub processos associados a esta
+versão histórica do processo. As colunas devem incluir:
+• Código do sub processo;
+• Nome;
+• Versão;
+• Data de elaboração. Associado a cada sub processo deve ser disponibilizado o botão de
+ação: Detalhe [I13.TB02.BT01].
+[I13.TB02.BT01] Detalhe
+Este botão permite aceder à informação detalhada da versão correspondente do sub processo.
+O sistema deverá validar se a versão listada é a versão atual (ativa) ou uma versão anterior
+(histórica) e encaminhar dinamicamente o utilizador:
+• Se for a versão ativa: redireciona para a [I7] Interface 7 - Detalhe;
+• Se for uma versão histórica: redireciona para a [I14] Interface 14 - Detalhe Histórico de
+Sub processo.
+[I13.TB03] Tabela com a lista de documentos
+A informação a apresentar nesta tabela deverá incluir os documentos associados a esta versão
+histórica do processo. As colunas devem incluir:
+
+outubro 2026 - 36
+
+• Código do documento;
+• Designação;
+• Versão;
+• Data de elaboração;
+• Tipo. Associado a cada documento deve ser disponibilizado o botão de ação: Detalhe
+[I13.TB03.BT01].
+[I13.TB03.BT01] Detalhe
+Este botão permite aceder à informação detalhada da versão correspondente do documento.
+O sistema deverá validar se a versão listada é a versão atual (ativa) ou uma versão anterior
+(histórica) e encaminhar dinamicamente o utilizador:
+• Se for a versão ativa: redireciona para a [I11] Interface 11 - Detalhe de Documento;
+• Se for uma versão histórica: redireciona para a [I15] Interface 15 - Detalhe Histórico de
+Documento.
+[I13.BT01] Voltar
+O botão [I13.BT01] permite voltar à interface anterior.
+
+[I14] Interface 14 – Detalhe Histórico de Sub processo
+Nesta interface é apresentada a informação detalhada de uma versão anterior (histórica) do
+sub processo. O modo é de estrita observação, pelo que todos os campos são imutáveis.
+[I14.LB01] Processo Pai
+Demonstra o processo Pai ao qual o sub processo estava associado nesta versão. Campo
+imutável.
+[I14.TXT01] a [I14.DT02] Campos de Informação do Sub processo
+Todos os campos descritivos do sub processo (Código, Nome, Objetivo, Âmbito, Data de
+Elaboração, Versão e Data de Revisão) correspondentes à versão selecionada. Campos
+imutáveis.
+[I14.TB01] Tabela de Donos do Sub processo
+Tabela com os utilizadores responsáveis pelo sub processo no momento em que esta versão
+estava ativa. Colunas apresentadas: Nome, Email. Campo imutável.
+[I14.TB02] Tabela com a lista de documentos
+
+outubro 2026 - 37
+
+A informação a apresentar nesta tabela deverá incluir os documentos associados a esta versão
+histórica do sub processo. As colunas devem incluir:
+• Código do documento;
+• Designação;
+• Versão;
+• Data de elaboração;
+• Tipo. Associado a cada documento deve ser disponibilizado o botão de ação: Detalhe
+[I14.TB02.BT01].
+[I14.TB02.BT01] Detalhe
+Este botão permite aceder à informação detalhada da versão correspondente do documento.
+O sistema deverá validar se a versão listada é a versão atual (ativa) ou uma versão anterior
+(histórica) e encaminhar dinamicamente o utilizador:
+• Se for a versão ativa: redireciona para a [I11] Interface 11 - Detalhe de Documento;
+• Se for uma versão histórica: redireciona para a [I15] Interface 15 - Detalhe Histórico de
+Documento.
+[I14.BT01] Voltar
+O botão [I14.BT01] permite voltar à interface anterior.
+
+[I15] Interface 15 – Detalhe Histórico de Documento
+Nesta interface é apresentada a informação detalhada de uma versão anterior (histórica) do
+documento, bem como a possibilidade de descarregar o ficheiro original dessa mesma versão.
+Todos os dados descritivos são imutáveis.
+[I15.LB01] Processo/Sub processo Associado
+Demonstra o Processo ou Sub Processo associado a esta versão do documento. Campo
+imutável.
+[I15.TXT01] a [I15.LB02] Campos de Informação do Documento
+Todos os campos descritivos do documento (Código, Designação, Versão, Data de Elaboração,
+Data de revisão e Tipo) correspondentes à versão selecionada. Campos imutáveis.
+[I15.TB01] Tabela de Donos do Documento
+Tabela com os utilizadores responsáveis pelo documento no momento em que esta versão
+estava ativa. Colunas apresentadas: Nome, Email. Campo imutável.
+
+outubro 2026 - 38
+
+[I15.BT01] Download do Ficheiro Histórico
+O botão [I15.BT01] permite realizar o download exclusivo do ficheiro (ou ficheiros) de upload
+associado a esta versão histórica exata do documento.
+[I15.BT02] Voltar
+O botão [I15.BT02] permite voltar à interface anterior.
+
+outubro 2026 - 39
+
+
