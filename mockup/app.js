@@ -510,47 +510,271 @@ function render() {
 // RENDERERS
 // ==========================================
 
+
+let i16State = {
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i16ActionSearch = function() {
+    i16State.pesquisaTexto = document.getElementById('i16-pesquisa').value;
+    render();
+};
+
+window.i16ActionSort = function(col) {
+    const existingIdx = i16State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i16State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i16State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i16State.sortColumns.splice(existingIdx, 1);
+    }
+    i16State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
+let i17State = {
+    initializedForContext: null,
+    processoPaiCodigo: '',
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i17ActionSearch = function() {
+    i17State.processoPaiCodigo = document.getElementById('i17-processo-pai').value;
+    i17State.pesquisaTexto = document.getElementById('i17-pesquisa').value;
+    render();
+};
+
+window.i17ActionSort = function(col) {
+    const existingIdx = i17State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i17State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i17State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i17State.sortColumns.splice(existingIdx, 1);
+    }
+    i17State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
+let i18State = {
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i18ActionSearch = function() {
+    i18State.pesquisaTexto = document.getElementById('i18-pesquisa').value;
+    render();
+};
+
+window.i18ActionSort = function(col) {
+    const existingIdx = i18State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i18State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i18State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i18State.sortColumns.splice(existingIdx, 1);
+    }
+    i18State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
 function renderI16ListaRascunhosProcessos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I16] Lista de Processos em Rascunho</h1>
                 </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.processos.filter(p => p.status === 'Rascunho').forEach(p => {
-        html += `<tr>
-            <td class="border px-4 py-2">${p.codigo}</td>
-            <td class="border px-4 py-2">${p.nome}</td>
-            <td class="border px-4 py-2">${p.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I13', '${p.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
-            </td>
-        </tr>`;
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/2">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i16-pesquisa" class="border p-2 rounded w-full" value="${i16State.pesquisaTexto}" placeholder="Pesquisa por Código, Nome, Objetivo, Âmbito...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i16ActionSearch()">Pesquisar</button>
+                </div>
+             </div>`;
+
+    let result = mockData.processos.filter(p => p.status === 'Rascunho');
+
+    if (i16State.pesquisaTexto) {
+        let t = i16State.pesquisaTexto.toLowerCase();
+        result = result.filter(p =>
+            (p.codigo && p.codigo.toLowerCase().includes(t)) ||
+            (p.nome && p.nome.toLowerCase().includes(t)) ||
+            (p.objetivo && p.objetivo.toLowerCase().includes(t)) ||
+            (p.ambito && p.ambito.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i16State.sortColumns.length > 0) {
+            for (let sort of i16State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpNome = (a.nome || '').localeCompare(b.nome || '');
+            if (cmpNome !== 0) return cmpNome;
+            let cmpObj = (a.objetivo || '').localeCompare(b.objetivo || '');
+            if (cmpObj !== 0) return cmpObj;
+            let cmpAmb = (a.ambito || '').localeCompare(b.ambito || '');
+            return cmpAmb;
+        }
     });
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('codigo')">Código do processo</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('nome')">Nome</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="5" class="border px-4 py-2 text-center text-gray-500">Nenhum processo em rascunho encontrado.</td></tr>`;
+    } else {
+        result.forEach(p => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${p.codigo}</td>
+                        <td class="border px-4 py-2">${p.nome}</td>
+                        <td class="border px-4 py-2">${p.versao}</td>
+                        <td class="border px-4 py-2">${p.dataElaboracao}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I13', '${p.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Edição</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
+                        </td>
+                    </tr>`;
+        });
+    }
+
     html += `</tbody></table>`;
     return html;
 }
 
 function renderI17ListaRascunhosSubProcessos() {
+    if (currentState.contextId && i17State.initializedForContext !== currentState.contextId) {
+        let parentP = mockData.processos.find(p => p.id === currentState.contextId);
+        i17State.processoPaiCodigo = parentP ? parentP.codigo : '';
+        i17State.initializedForContext = currentState.contextId;
+        i17State.pesquisaTexto = '';
+        i17State.sortColumns = [];
+    }
+
+    let processosUnicos = [];
+    mockData.processos.forEach(p => {
+        if (!processosUnicos.find(x => x.codigo === p.codigo)) {
+            processosUnicos.push({ codigo: p.codigo, nome: p.nome });
+        }
+    });
+    processosUnicos.sort((a,b) => a.nome.localeCompare(b.nome));
+    let dataListOptions = processosUnicos.map(p => `<option value="${p.codigo}">${p.codigo} - ${p.nome}</option>`).join('');
+
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I17] Lista de Sub processos em Rascunho</h1>
                 </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código Pai</th><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.subProcessos.filter(sp => sp.status === 'Rascunho').forEach(sp => {
-        html += `<tr>
-            <td class="border px-4 py-2">${sp.processoPaiId}</td>
-            <td class="border px-4 py-2">${sp.codigo}</td>
-            <td class="border px-4 py-2">${sp.nome}</td>
-            <td class="border px-4 py-2">${sp.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I14', '${sp.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
-            </td>
-        </tr>`;
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/3">
+                    <label class="block font-bold mb-1">Código Processo Pai</label>
+                    <input type="text" id="i17-processo-pai" list="processos-list-17" class="border p-2 rounded w-full" value="${i17State.processoPaiCodigo}" placeholder="Selecione ou escreva o Código">
+                    <datalist id="processos-list-17">
+                        <option value="">Todos</option>
+                        ${dataListOptions}
+                    </datalist>
+                </div>
+                <div class="w-1/3">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i17-pesquisa" class="border p-2 rounded w-full" value="${i17State.pesquisaTexto}" placeholder="Código, Nome, Objetivo, Âmbito...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i17ActionSearch()">Pesquisar</button>
+                </div>
+             </div>`;
+
+    let result = mockData.subProcessos.filter(sp => sp.status === 'Rascunho');
+
+    if (i17State.processoPaiCodigo) {
+        result = result.filter(sp => sp.processoPaiId === i17State.processoPaiCodigo);
+    }
+    if (i17State.pesquisaTexto) {
+        let t = i17State.pesquisaTexto.toLowerCase();
+        result = result.filter(sp =>
+            (sp.codigo && sp.codigo.toLowerCase().includes(t)) ||
+            (sp.nome && sp.nome.toLowerCase().includes(t)) ||
+            (sp.objetivo && sp.objetivo.toLowerCase().includes(t)) ||
+            (sp.ambito && sp.ambito.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i17State.sortColumns.length > 0) {
+            for (let sort of i17State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpPai = (a.processoPaiId || '').localeCompare(b.processoPaiId || '');
+            if (cmpPai !== 0) return cmpPai;
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpNome = (a.nome || '').localeCompare(b.nome || '');
+            if (cmpNome !== 0) return cmpNome;
+            let cmpObj = (a.objetivo || '').localeCompare(b.objetivo || '');
+            if (cmpObj !== 0) return cmpObj;
+            let cmpAmb = (a.ambito || '').localeCompare(b.ambito || '');
+            return cmpAmb;
+        }
     });
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('processoPaiId')">Código do processo Pai</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('codigo')">Código do sub processo</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('nome')">Nome</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="6" class="border px-4 py-2 text-center text-gray-500">Nenhum sub processo em rascunho encontrado.</td></tr>`;
+    } else {
+        result.forEach(sp => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${sp.processoPaiId}</td>
+                        <td class="border px-4 py-2">${sp.codigo}</td>
+                        <td class="border px-4 py-2">${sp.nome}</td>
+                        <td class="border px-4 py-2">${sp.versao}</td>
+                        <td class="border px-4 py-2">${sp.dataElaboracao}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I14', '${sp.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
+                        </td>
+                    </tr>`;
+        });
+    }
+
     html += `</tbody></table>`;
     return html;
 }
@@ -559,20 +783,108 @@ function renderI18ListaRascunhosDocumentos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I18] Lista de Documentos em Rascunho</h1>
                 </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.documentos.filter(doc => doc.status === 'Rascunho').forEach(doc => {
-        html += `<tr>
-            <td class="border px-4 py-2">${doc.codigo}</td>
-            <td class="border px-4 py-2">${doc.designacao}</td>
-            <td class="border px-4 py-2">${doc.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I15', '${doc.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
-            </td>
-        </tr>`;
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/2">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i18-pesquisa" class="border p-2 rounded w-full" value="${i18State.pesquisaTexto}" placeholder="Pesquisa por Processo/Sub processo associado, Designação, Código do Documento...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i18ActionSearch()">Pesquisar</button>
+                </div>
+             </div>`;
+
+    // Compute associated process/sub-process for documents
+    let docsWithAssoc = mockData.documentos.map(doc => {
+        let assocCodigos = [];
+        let pId = '', spId = '';
+        mockData.processos.forEach(p => {
+            if (p.documentosId && p.documentosId.includes(doc.id)) {
+                assocCodigos.push(p.codigo);
+                pId = p.codigo;
+            }
+        });
+        mockData.subProcessos.forEach(sp => {
+            if (sp.documentosId && sp.documentosId.includes(doc.id)) {
+                assocCodigos.push(sp.codigo);
+                pId = sp.processoPaiId;
+                spId = sp.codigo;
+            }
+        });
+        return {
+            ...doc,
+            associadosStr: assocCodigos.join(', '),
+            pId: pId,
+            spId: spId
+        };
     });
+
+    let result = docsWithAssoc.filter(doc => doc.status === 'Rascunho');
+
+    if (i18State.pesquisaTexto) {
+        let t = i18State.pesquisaTexto.toLowerCase();
+        result = result.filter(doc =>
+            (doc.codigo && doc.codigo.toLowerCase().includes(t)) ||
+            (doc.designacao && doc.designacao.toLowerCase().includes(t)) ||
+            (doc.associadosStr && doc.associadosStr.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i18State.sortColumns.length > 0) {
+            for (let sort of i18State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpPai = (a.pId || '').localeCompare(b.pId || '');
+            if (cmpPai !== 0) return cmpPai;
+            let cmpSp = (a.spId || '').localeCompare(b.spId || '');
+            if (cmpSp !== 0) return cmpSp;
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpDesig = (a.designacao || '').localeCompare(b.designacao || '');
+            return cmpDesig;
+        }
+    });
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('codigo')">Código do documento</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('associadosStr')">Código do processo / sub processo associado</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('designacao')">Designação</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('tipo')">Tipo</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="7" class="border px-4 py-2 text-center text-gray-500">Nenhum documento em rascunho encontrado.</td></tr>`;
+    } else {
+        result.forEach(doc => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${doc.codigo}</td>
+                        <td class="border px-4 py-2">${doc.associadosStr}</td>
+                        <td class="border px-4 py-2">${doc.designacao}</td>
+                        <td class="border px-4 py-2">${doc.versao}</td>
+                        <td class="border px-4 py-2">${doc.dataElaboracao}</td>
+                        <td class="border px-4 py-2">${doc.tipo}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I15', '${doc.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                        </td>
+                     </tr>`;
+        });
+    }
+
     html += `</tbody></table>`;
     return html;
 }
