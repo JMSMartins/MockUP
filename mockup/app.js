@@ -293,24 +293,40 @@ function eliminarDocumento(docId) {
 // --- Lógica de Gravação e Publicação ---
 // "Guardar como Rascunho" e "Guardar e Publicar"
 function guardarProcesso(actionType, id = null) {
-    // Para simplificar o mockup, não lemos todos os campos do DOM, vamos apenas simular
-    // o save de um novo ou existente com o estado correto.
     let processo = mockData.processos.find(x => x.id === id);
-    let isNew = false;
 
     if (!processo) {
-        // Mock de Criação
-        isNew = true;
+        // Mock de Criação via I2
+        const codigo = document.getElementById('i2-codigo') ? document.getElementById('i2-codigo').value.trim() : '';
+        const nome = document.getElementById('i2-nome') ? document.getElementById('i2-nome').value.trim() : '';
+        const objetivo = document.getElementById('i2-objetivo') ? document.getElementById('i2-objetivo').value.trim() : '';
+        const ambito = document.getElementById('i2-ambito') ? document.getElementById('i2-ambito').value.trim() : '';
+        const dtElab = document.getElementById('i2-dt-elab') ? document.getElementById('i2-dt-elab').value : '';
+        const versao = document.getElementById('i2-versao') ? document.getElementById('i2-versao').value.trim() : '';
+        const dtRev = document.getElementById('i2-dt-rev') ? document.getElementById('i2-dt-rev').value : '';
+
+        // Validações
+        if (!codigo) return alert("Código obrigatório. Não aceita apenas espaços em branco.");
+        if (mockData.processos.find(p => p.codigo === codigo)) return alert("O código indicado já existe no sistema.");
+        if (!nome) return alert("Nome obrigatório. Não aceita apenas espaços em branco.");
+        if (!objetivo) return alert("Objetivo obrigatório. Não aceita apenas espaços em branco.");
+        if (!ambito) return alert("Âmbito obrigatório. Não aceitando apenas espaços em branco.");
+        if (!dtElab) return alert("Data de Elaboração obrigatória.");
+        if (new Date(dtElab) > new Date()) return alert("A Data de Elaboração não pode ser uma data futura.");
+        if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+        if (!dtRev) return alert("Data de Revisão obrigatória.");
+        if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+
         processo = {
             id: 'P' + Date.now(),
-            codigo: 'PROC-MOCK-' + Date.now().toString().slice(-4),
-            nome: 'Processo Mockado ' + Date.now().toString().slice(-4),
-            objetivo: 'Objetivo mockado',
-            ambito: 'Âmbito mockado',
-            dataElaboracao: '2026-11-01',
-            dataRevisao: '2026-11-01',
-            versao: '1.0',
-            donos: [{ nome: 'User', email: 'user@empresa.com' }],
+            codigo: codigo,
+            nome: nome,
+            objetivo: objetivo,
+            ambito: ambito,
+            dataElaboracao: dtElab,
+            dataRevisao: dtRev,
+            versao: versao,
+            donos: [...i2State.donos],
             subProcessosId: [],
             documentosId: []
         };
@@ -909,7 +925,7 @@ function renderI18ListaRascunhosDocumentos() {
 function renderI1ListaProcessos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I1] Lista de Processos</h1>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I2')">Adicionar Processo</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I2', 'RESET')">Adicionar Processo</button>
                 </div>`;
 
     html += `<div class="mb-4 flex gap-2">
@@ -946,25 +962,65 @@ function renderI1ListaProcessos() {
     return html;
 }
 
+
+let i2State = {
+    donos: [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }]
+};
+
+window.i2AddDono = function() {
+    const emailInput = document.getElementById('i2-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert("Email inválido.");
+        return;
+    }
+    if (i2State.donos.find(d => d.email === email)) {
+        alert("Email já adicionado.");
+        return;
+    }
+    i2State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i2RemoveDono = function(email) {
+    if (i2State.donos.length <= 1) {
+        alert("Atenção: O processo deve ter pelo menos um dono associado.");
+        return;
+    }
+    i2State.donos = i2State.donos.filter(d => d.email !== email);
+    render();
+};
+
 function renderI2CriacaoProcesso() {
+    if (currentState.view === 'I2' && currentState.contextId === 'RESET') {
+        i2State.donos = [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }];
+        currentState.contextId = null;
+    }
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I2] Criação de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Nome</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Objetivo</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Âmbito</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Código</label><input type="text" id="i2-codigo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Nome</label><input type="text" id="i2-nome" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Objetivo</label><input type="text" id="i2-objetivo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Âmbito</label><input type="text" id="i2-ambito" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i2-dt-elab" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i2-versao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i2-dt-rev" class="border p-2 w-full"></div>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Processo</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i2-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i2AddDono()">Adicionar</button>
             </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
+
+    i2State.donos.forEach(d => {
+        html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i2RemoveDono('${d.email}')">Remover</button></td></tr>`;
+    });
+
+    html += `</tbody></table>
         </div>
         <div class="flex gap-2 mt-6">
             <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho')">Guardar como Rascunho</button>
