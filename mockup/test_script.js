@@ -36,7 +36,7 @@ console.log(`Expected: I11, Got: ${global.currentState.view}`);
 if (global.currentState.view !== 'I11') throw new Error("Test Failed");
 
 // Test Scenario A: Click on a historical sub-process (None available, so let's mock one temporarily)
-global.mockData.subProcessos.push({ id: 'SP2-V1', status: 'historico', donos: [], documentosId: [] });
+global.mockData.subProcessos.push({ id: 'SP2-V1', status: 'Inativo', donos: [], documentosId: [] });
 console.log("-> Clicking Historical Sub-process SP2-V1...");
 global.handleIntelligentNavigation('SP2-V1');
 console.log(`Expected: I14, Got: ${global.currentState.view}`);
