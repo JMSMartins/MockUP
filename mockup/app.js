@@ -174,6 +174,23 @@ function getItemById(id) {
 // Ao clicar em "Desativar" num Processo ativo, a função percorre os dados e altera o estado
 // para "Inativo" desse Processo, de todos os seus Documentos, de todos os seus Sub processos
 // e dos Documentos desses Sub processos.
+
+function publicarProcesso(id) {
+    const p = mockData.processos.find(x => x.id === id);
+    if (!p) return;
+
+    // Desativar todos os outros do mesmo código
+    mockData.processos.forEach(x => {
+        if (x.codigo === p.codigo && x.id !== p.id && x.status === 'Publicado') {
+            x.status = 'Inativo';
+        }
+    });
+
+    p.status = 'Publicado';
+    alert('Versão publicada com sucesso!');
+    render();
+}
+
 function desativarProcesso(processId) {
     const processo = mockData.processos.find(x => x.id === processId);
     if (!processo || processo.status !== 'Publicado') return;
@@ -204,6 +221,20 @@ function desativarProcesso(processId) {
     render();
 }
 
+
+function publicarSubProcesso(id) {
+    const sp = mockData.subProcessos.find(x => x.id === id);
+    if (!sp) return;
+    mockData.subProcessos.forEach(x => {
+        if (x.codigo === sp.codigo && x.id !== sp.id && x.status === 'Publicado') {
+            x.status = 'Inativo';
+        }
+    });
+    sp.status = 'Publicado';
+    alert('Versão publicada com sucesso!');
+    render();
+}
+
 function desativarSubProcesso(spId) {
     const sp = mockData.subProcessos.find(x => x.id === spId);
     if (!sp || sp.status !== 'Publicado') return;
@@ -215,6 +246,20 @@ function desativarSubProcesso(spId) {
     });
 
     alert('Sub processo e os seus Documentos foram desativados em cascata.');
+    render();
+}
+
+
+function publicarDocumento(id) {
+    const doc = mockData.documentos.find(x => x.id === id);
+    if (!doc) return;
+    mockData.documentos.forEach(x => {
+        if (x.codigo === doc.codigo && x.id !== doc.id && x.status === 'Publicado') {
+            x.status = 'Inativo';
+        }
+    });
+    doc.status = 'Publicado';
+    alert('Versão publicada com sucesso!');
     render();
 }
 
@@ -276,24 +321,40 @@ function eliminarDocumento(docId) {
 // --- Lógica de Gravação e Publicação ---
 // "Guardar como Rascunho" e "Guardar e Publicar"
 function guardarProcesso(actionType, id = null) {
-    // Para simplificar o mockup, não lemos todos os campos do DOM, vamos apenas simular
-    // o save de um novo ou existente com o estado correto.
     let processo = mockData.processos.find(x => x.id === id);
-    let isNew = false;
 
     if (!processo) {
-        // Mock de Criação
-        isNew = true;
+        // Mock de Criação via I2
+        const codigo = document.getElementById('i2-codigo') ? document.getElementById('i2-codigo').value.trim() : '';
+        const nome = document.getElementById('i2-nome') ? document.getElementById('i2-nome').value.trim() : '';
+        const objetivo = document.getElementById('i2-objetivo') ? document.getElementById('i2-objetivo').value.trim() : '';
+        const ambito = document.getElementById('i2-ambito') ? document.getElementById('i2-ambito').value.trim() : '';
+        const dtElab = document.getElementById('i2-dt-elab') ? document.getElementById('i2-dt-elab').value : '';
+        const versao = document.getElementById('i2-versao') ? document.getElementById('i2-versao').value.trim() : '';
+        const dtRev = document.getElementById('i2-dt-rev') ? document.getElementById('i2-dt-rev').value : '';
+
+        // Validações
+        if (!codigo) return alert("Código obrigatório. Não aceita apenas espaços em branco.");
+        if (mockData.processos.find(p => p.codigo === codigo)) return alert("O código indicado já existe no sistema.");
+        if (!nome) return alert("Nome obrigatório. Não aceita apenas espaços em branco.");
+        if (!objetivo) return alert("Objetivo obrigatório. Não aceita apenas espaços em branco.");
+        if (!ambito) return alert("Âmbito obrigatório. Não aceitando apenas espaços em branco.");
+        if (!dtElab) return alert("Data de Elaboração obrigatória.");
+        if (new Date(dtElab) > new Date()) return alert("A Data de Elaboração não pode ser uma data futura.");
+        if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+        if (!dtRev) return alert("Data de Revisão obrigatória.");
+        if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+
         processo = {
             id: 'P' + Date.now(),
-            codigo: 'PROC-MOCK-' + Date.now().toString().slice(-4),
-            nome: 'Processo Mockado ' + Date.now().toString().slice(-4),
-            objetivo: 'Objetivo mockado',
-            ambito: 'Âmbito mockado',
-            dataElaboracao: '2026-11-01',
-            dataRevisao: '2026-11-01',
-            versao: '1.0',
-            donos: [{ nome: 'User', email: 'user@empresa.com' }],
+            codigo: codigo,
+            nome: nome,
+            objetivo: objetivo,
+            ambito: ambito,
+            dataElaboracao: dtElab,
+            dataRevisao: dtRev,
+            versao: versao,
+            donos: [...i2State.donos],
             subProcessosId: [],
             documentosId: []
         };
@@ -318,6 +379,59 @@ function guardarProcesso(actionType, id = null) {
         navigateTo('I1');
     }
 }
+
+
+window.guardarSubProcessoNovo = function(actionType) {
+    const pai = document.getElementById('i6-processo-pai').value;
+    const codigo = document.getElementById('i6-codigo').value.trim();
+    const nome = document.getElementById('i6-nome').value.trim();
+    const objetivo = document.getElementById('i6-objetivo').value.trim();
+    const ambito = document.getElementById('i6-ambito').value.trim();
+    const dtElab = document.getElementById('i6-dt-elab').value;
+    const versao = document.getElementById('i6-versao').value.trim();
+    const dtRev = document.getElementById('i6-dt-rev').value;
+
+    if (!pai) return alert("Processo Pai obrigatório.");
+    if (!codigo) return alert("Código obrigatório. Não aceita apenas espaços em branco.");
+    if (mockData.subProcessos.find(sp => sp.codigo === codigo)) return alert("O código indicado já existe no sistema.");
+    if (!nome) return alert("Nome obrigatório. Não aceita apenas espaços em branco.");
+    if (!objetivo) return alert("Objetivo obrigatório. Não aceita apenas espaços em branco.");
+    if (!ambito) return alert("Âmbito obrigatório. Não aceita apenas espaços em branco.");
+    if (!dtElab) return alert("Data de Elaboração obrigatória.");
+    if (new Date(dtElab) > new Date()) return alert("A Data de Elaboração não pode ser uma data futura.");
+    if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+    if (!dtRev) return alert("Data de Revisão obrigatória.");
+    if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+
+    let sp = {
+        id: 'SP' + Date.now(),
+        processoPaiId: pai,
+        codigo: codigo,
+        nome: nome,
+        objetivo: objetivo,
+        ambito: ambito,
+        dataElaboracao: dtElab,
+        dataRevisao: dtRev,
+        versao: versao,
+        donos: [...i6State.donos],
+        documentosId: []
+    };
+    mockData.subProcessos.push(sp);
+
+    // Adiciona na referencia do pai
+    let paiObj = mockData.processos.find(p => p.codigo === pai && p.status === 'Publicado');
+    if (paiObj && !paiObj.subProcessosId.includes(sp.id)) paiObj.subProcessosId.push(sp.id);
+
+    if (actionType === 'rascunho') {
+        sp.status = 'Rascunho';
+        alert('Guardado como Rascunho com sucesso!');
+        navigateTo('I17');
+    } else {
+        sp.status = 'Publicado';
+        alert('Publicado com sucesso!');
+        navigateTo('I5');
+    }
+};
 
 function guardarSubProcesso(actionType, id = null) {
     let sp = mockData.subProcessos.find(x => x.id === id);
@@ -356,6 +470,60 @@ function guardarSubProcesso(actionType, id = null) {
         navigateTo('I5');
     }
 }
+
+
+window.guardarDocumentoNovo = function(actionType) {
+    const assoc = document.getElementById('i10-associado').value;
+    const codigo = document.getElementById('i10-codigo').value.trim();
+    const designacao = document.getElementById('i10-designacao').value.trim();
+    const versao = document.getElementById('i10-versao').value.trim();
+    const dtElab = document.getElementById('i10-dt-elab').value;
+    const dtRev = document.getElementById('i10-dt-rev').value;
+    const tipo = document.getElementById('i10-tipo').value;
+    const file = document.getElementById('i10-file').value;
+
+    if (!assoc) return alert("Processo Associado obrigatório.");
+    if (!codigo) return alert("Código obrigatório. Não aceita apenas espaços em branco.");
+    if (mockData.documentos.find(d => d.codigo === codigo)) return alert("O código indicado já existe no sistema.");
+    if (!designacao) return alert("Designação obrigatória. Não aceita apenas espaços em branco.");
+    if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+    if (!dtElab) return alert("Data de Elaboração obrigatória.");
+    if (new Date(dtElab) > new Date()) return alert("A Data de Elaboração não pode ser uma data futura.");
+    if (!dtRev) return alert("Data de Revisão obrigatória.");
+    if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+    if (!tipo) return alert("Tipo obrigatório.");
+    if (!file) return alert("Upload de ficheiro obrigatório.");
+
+    let doc = {
+        id: 'DOC' + Date.now(),
+        codigo: codigo,
+        designacao: designacao,
+        versao: versao,
+        dataElaboracao: dtElab,
+        dataRevisao: dtRev,
+        tipo: tipo,
+        donos: [...i10State.donos]
+    };
+    mockData.documentos.push(doc);
+
+    // Relate to parent
+    let p = mockData.processos.find(x => x.id === assoc);
+    if (p) p.documentosId.push(doc.id);
+    else {
+        let sp = mockData.subProcessos.find(x => x.id === assoc);
+        if (sp) sp.documentosId.push(doc.id);
+    }
+
+    if (actionType === 'rascunho') {
+        doc.status = 'Rascunho';
+        alert('Guardado como Rascunho com sucesso!');
+        navigateTo('I18');
+    } else {
+        doc.status = 'Publicado';
+        alert('Publicado com sucesso!');
+        navigateTo('I9');
+    }
+};
 
 function guardarDocumento(actionType, id = null) {
     let doc = mockData.documentos.find(x => x.id === id);
@@ -510,47 +678,271 @@ function render() {
 // RENDERERS
 // ==========================================
 
+
+let i16State = {
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i16ActionSearch = function() {
+    i16State.pesquisaTexto = document.getElementById('i16-pesquisa').value;
+    render();
+};
+
+window.i16ActionSort = function(col) {
+    const existingIdx = i16State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i16State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i16State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i16State.sortColumns.splice(existingIdx, 1);
+    }
+    i16State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
+let i17State = {
+    initializedForContext: null,
+    processoPaiCodigo: '',
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i17ActionSearch = function() {
+    i17State.processoPaiCodigo = document.getElementById('i17-processo-pai').value;
+    i17State.pesquisaTexto = document.getElementById('i17-pesquisa').value;
+    render();
+};
+
+window.i17ActionSort = function(col) {
+    const existingIdx = i17State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i17State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i17State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i17State.sortColumns.splice(existingIdx, 1);
+    }
+    i17State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
+let i18State = {
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i18ActionSearch = function() {
+    i18State.pesquisaTexto = document.getElementById('i18-pesquisa').value;
+    render();
+};
+
+window.i18ActionSort = function(col) {
+    const existingIdx = i18State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i18State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i18State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i18State.sortColumns.splice(existingIdx, 1);
+    }
+    i18State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
 function renderI16ListaRascunhosProcessos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I16] Lista de Processos em Rascunho</h1>
                 </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.processos.filter(p => p.status === 'Rascunho').forEach(p => {
-        html += `<tr>
-            <td class="border px-4 py-2">${p.codigo}</td>
-            <td class="border px-4 py-2">${p.nome}</td>
-            <td class="border px-4 py-2">${p.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I13', '${p.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
-            </td>
-        </tr>`;
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/2">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i16-pesquisa" class="border p-2 rounded w-full" value="${i16State.pesquisaTexto}" placeholder="Pesquisa por Código, Nome, Objetivo, Âmbito...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i16ActionSearch()">Pesquisar</button>
+                </div>
+             </div>`;
+
+    let result = mockData.processos.filter(p => p.status === 'Rascunho');
+
+    if (i16State.pesquisaTexto) {
+        let t = i16State.pesquisaTexto.toLowerCase();
+        result = result.filter(p =>
+            (p.codigo && p.codigo.toLowerCase().includes(t)) ||
+            (p.nome && p.nome.toLowerCase().includes(t)) ||
+            (p.objetivo && p.objetivo.toLowerCase().includes(t)) ||
+            (p.ambito && p.ambito.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i16State.sortColumns.length > 0) {
+            for (let sort of i16State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpNome = (a.nome || '').localeCompare(b.nome || '');
+            if (cmpNome !== 0) return cmpNome;
+            let cmpObj = (a.objetivo || '').localeCompare(b.objetivo || '');
+            if (cmpObj !== 0) return cmpObj;
+            let cmpAmb = (a.ambito || '').localeCompare(b.ambito || '');
+            return cmpAmb;
+        }
     });
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('codigo')">Código do processo</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('nome')">Nome</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i16ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="5" class="border px-4 py-2 text-center text-gray-500">Nenhum processo em rascunho encontrado.</td></tr>`;
+    } else {
+        result.forEach(p => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${p.codigo}</td>
+                        <td class="border px-4 py-2">${p.nome}</td>
+                        <td class="border px-4 py-2">${p.versao}</td>
+                        <td class="border px-4 py-2">${p.dataElaboracao}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I13', '${p.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Edição</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
+                        </td>
+                    </tr>`;
+        });
+    }
+
     html += `</tbody></table>`;
     return html;
 }
 
 function renderI17ListaRascunhosSubProcessos() {
+    if (currentState.contextId && i17State.initializedForContext !== currentState.contextId) {
+        let parentP = mockData.processos.find(p => p.id === currentState.contextId);
+        i17State.processoPaiCodigo = parentP ? parentP.codigo : '';
+        i17State.initializedForContext = currentState.contextId;
+        i17State.pesquisaTexto = '';
+        i17State.sortColumns = [];
+    }
+
+    let processosUnicos = [];
+    mockData.processos.forEach(p => {
+        if (!processosUnicos.find(x => x.codigo === p.codigo)) {
+            processosUnicos.push({ codigo: p.codigo, nome: p.nome });
+        }
+    });
+    processosUnicos.sort((a,b) => a.nome.localeCompare(b.nome));
+    let dataListOptions = processosUnicos.map(p => `<option value="${p.codigo}">${p.codigo} - ${p.nome}</option>`).join('');
+
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I17] Lista de Sub processos em Rascunho</h1>
                 </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código Pai</th><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.subProcessos.filter(sp => sp.status === 'Rascunho').forEach(sp => {
-        html += `<tr>
-            <td class="border px-4 py-2">${sp.processoPaiId}</td>
-            <td class="border px-4 py-2">${sp.codigo}</td>
-            <td class="border px-4 py-2">${sp.nome}</td>
-            <td class="border px-4 py-2">${sp.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I14', '${sp.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
-            </td>
-        </tr>`;
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/3">
+                    <label class="block font-bold mb-1">Código Processo Pai</label>
+                    <input type="text" id="i17-processo-pai" list="processos-list-17" class="border p-2 rounded w-full" value="${i17State.processoPaiCodigo}" placeholder="Selecione ou escreva o Código">
+                    <datalist id="processos-list-17">
+                        <option value="">Todos</option>
+                        ${dataListOptions}
+                    </datalist>
+                </div>
+                <div class="w-1/3">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i17-pesquisa" class="border p-2 rounded w-full" value="${i17State.pesquisaTexto}" placeholder="Código, Nome, Objetivo, Âmbito...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i17ActionSearch()">Pesquisar</button>
+                </div>
+             </div>`;
+
+    let result = mockData.subProcessos.filter(sp => sp.status === 'Rascunho');
+
+    if (i17State.processoPaiCodigo) {
+        result = result.filter(sp => sp.processoPaiId === i17State.processoPaiCodigo);
+    }
+    if (i17State.pesquisaTexto) {
+        let t = i17State.pesquisaTexto.toLowerCase();
+        result = result.filter(sp =>
+            (sp.codigo && sp.codigo.toLowerCase().includes(t)) ||
+            (sp.nome && sp.nome.toLowerCase().includes(t)) ||
+            (sp.objetivo && sp.objetivo.toLowerCase().includes(t)) ||
+            (sp.ambito && sp.ambito.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i17State.sortColumns.length > 0) {
+            for (let sort of i17State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpPai = (a.processoPaiId || '').localeCompare(b.processoPaiId || '');
+            if (cmpPai !== 0) return cmpPai;
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpNome = (a.nome || '').localeCompare(b.nome || '');
+            if (cmpNome !== 0) return cmpNome;
+            let cmpObj = (a.objetivo || '').localeCompare(b.objetivo || '');
+            if (cmpObj !== 0) return cmpObj;
+            let cmpAmb = (a.ambito || '').localeCompare(b.ambito || '');
+            return cmpAmb;
+        }
     });
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('processoPaiId')">Código do processo Pai</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('codigo')">Código do sub processo</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('nome')">Nome</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i17ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="6" class="border px-4 py-2 text-center text-gray-500">Nenhum sub processo em rascunho encontrado.</td></tr>`;
+    } else {
+        result.forEach(sp => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${sp.processoPaiId}</td>
+                        <td class="border px-4 py-2">${sp.codigo}</td>
+                        <td class="border px-4 py-2">${sp.nome}</td>
+                        <td class="border px-4 py-2">${sp.versao}</td>
+                        <td class="border px-4 py-2">${sp.dataElaboracao}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I14', '${sp.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
+                        </td>
+                    </tr>`;
+        });
+    }
+
     html += `</tbody></table>`;
     return html;
 }
@@ -559,20 +951,108 @@ function renderI18ListaRascunhosDocumentos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I18] Lista de Documentos em Rascunho</h1>
                 </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.documentos.filter(doc => doc.status === 'Rascunho').forEach(doc => {
-        html += `<tr>
-            <td class="border px-4 py-2">${doc.codigo}</td>
-            <td class="border px-4 py-2">${doc.designacao}</td>
-            <td class="border px-4 py-2">${doc.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I15', '${doc.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
-            </td>
-        </tr>`;
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/2">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i18-pesquisa" class="border p-2 rounded w-full" value="${i18State.pesquisaTexto}" placeholder="Pesquisa por Processo/Sub processo associado, Designação, Código do Documento...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i18ActionSearch()">Pesquisar</button>
+                </div>
+             </div>`;
+
+    // Compute associated process/sub-process for documents
+    let docsWithAssoc = mockData.documentos.map(doc => {
+        let assocCodigos = [];
+        let pId = '', spId = '';
+        mockData.processos.forEach(p => {
+            if (p.documentosId && p.documentosId.includes(doc.id)) {
+                assocCodigos.push(p.codigo);
+                pId = p.codigo;
+            }
+        });
+        mockData.subProcessos.forEach(sp => {
+            if (sp.documentosId && sp.documentosId.includes(doc.id)) {
+                assocCodigos.push(sp.codigo);
+                pId = sp.processoPaiId;
+                spId = sp.codigo;
+            }
+        });
+        return {
+            ...doc,
+            associadosStr: assocCodigos.join(', '),
+            pId: pId,
+            spId: spId
+        };
     });
+
+    let result = docsWithAssoc.filter(doc => doc.status === 'Rascunho');
+
+    if (i18State.pesquisaTexto) {
+        let t = i18State.pesquisaTexto.toLowerCase();
+        result = result.filter(doc =>
+            (doc.codigo && doc.codigo.toLowerCase().includes(t)) ||
+            (doc.designacao && doc.designacao.toLowerCase().includes(t)) ||
+            (doc.associadosStr && doc.associadosStr.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i18State.sortColumns.length > 0) {
+            for (let sort of i18State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpPai = (a.pId || '').localeCompare(b.pId || '');
+            if (cmpPai !== 0) return cmpPai;
+            let cmpSp = (a.spId || '').localeCompare(b.spId || '');
+            if (cmpSp !== 0) return cmpSp;
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpDesig = (a.designacao || '').localeCompare(b.designacao || '');
+            return cmpDesig;
+        }
+    });
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('codigo')">Código do documento</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('associadosStr')">Código do processo / sub processo associado</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('designacao')">Designação</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i18ActionSort('tipo')">Tipo</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="7" class="border px-4 py-2 text-center text-gray-500">Nenhum documento em rascunho encontrado.</td></tr>`;
+    } else {
+        result.forEach(doc => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${doc.codigo}</td>
+                        <td class="border px-4 py-2">${doc.associadosStr}</td>
+                        <td class="border px-4 py-2">${doc.designacao}</td>
+                        <td class="border px-4 py-2">${doc.versao}</td>
+                        <td class="border px-4 py-2">${doc.dataElaboracao}</td>
+                        <td class="border px-4 py-2">${doc.tipo}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I15', '${doc.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                        </td>
+                     </tr>`;
+        });
+    }
+
     html += `</tbody></table>`;
     return html;
 }
@@ -580,7 +1060,7 @@ function renderI18ListaRascunhosDocumentos() {
 function renderI1ListaProcessos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I1] Lista de Processos</h1>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I2')">Adicionar Processo</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I2', 'RESET')">Adicionar Processo</button>
                 </div>`;
 
     html += `<div class="mb-4 flex gap-2">
@@ -617,25 +1097,65 @@ function renderI1ListaProcessos() {
     return html;
 }
 
+
+let i2State = {
+    donos: [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }]
+};
+
+window.i2AddDono = function() {
+    const emailInput = document.getElementById('i2-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        alert("Email inválido.");
+        return;
+    }
+    if (i2State.donos.find(d => d.email === email)) {
+        alert("Email já adicionado.");
+        return;
+    }
+    i2State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i2RemoveDono = function(email) {
+    if (i2State.donos.length <= 1) {
+        alert("Atenção: O processo deve ter pelo menos um dono associado.");
+        return;
+    }
+    i2State.donos = i2State.donos.filter(d => d.email !== email);
+    render();
+};
+
 function renderI2CriacaoProcesso() {
+    if (currentState.view === 'I2' && currentState.contextId === 'RESET') {
+        i2State.donos = [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }];
+        currentState.contextId = null;
+    }
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I2] Criação de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Nome</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Objetivo</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Âmbito</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Código</label><input type="text" id="i2-codigo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Nome</label><input type="text" id="i2-nome" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Objetivo</label><input type="text" id="i2-objetivo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Âmbito</label><input type="text" id="i2-ambito" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i2-dt-elab" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i2-versao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i2-dt-rev" class="border p-2 w-full"></div>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Processo</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i2-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i2AddDono()">Adicionar</button>
             </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
+
+    i2State.donos.forEach(d => {
+        html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i2RemoveDono('${d.email}')">Remover</button></td></tr>`;
+    });
+
+    html += `</tbody></table>
         </div>
         <div class="flex gap-2 mt-6">
             <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho')">Guardar como Rascunho</button>
@@ -652,7 +1172,7 @@ function renderI3DetalheProcessoAtivo() {
 
     let html = `<div class="mb-4 flex justify-between items-center">
                     <h1 class="text-3xl font-bold">[I3] Detalhe de Processo (Ativo)</h1>
-                    <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoProcesso('${p.id}')">Editar</button>
+                    <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoProcesso('${p.id}')">Edição</button>
                 </div>`;
 
     html += `
@@ -662,9 +1182,9 @@ function renderI3DetalheProcessoAtivo() {
             <div><strong>Objetivo:</strong> ${p.objetivo}</div>
             <div><strong>Âmbito:</strong> ${p.ambito}</div>
             <div><strong>Data de Elaboração:</strong> ${p.dataElaboracao}</div>
-            <div><strong>Data de Edição:</strong> ${p.dataRevisao}</div>
+            <div><strong>Data de revisão da versão:</strong> ${p.dataRevisao}</div>
             <div><strong>Versão:</strong> ${p.versao}</div>
-            <div><strong>Status:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></div>
+            <div><strong>Estado:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></div>
         </div>
     `;
 
@@ -674,151 +1194,401 @@ function renderI3DetalheProcessoAtivo() {
     html += `</tbody></table>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela com a lista de sub processos</h2>`;
-    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Sub Processo</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Elaboração</th><th class="border px-4 py-2">Ação</th></tr></thead><tbody>`;
+    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código do sub processo</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de elaboração</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
     p.subProcessosId.forEach(spId => {
         const sp = getItemById(spId);
-        if(sp) html += `<tr><td class="border px-4 py-2">${sp.codigo} - ${sp.nome}</td><td class="border px-4 py-2">${sp.versao}</td><td class="border px-4 py-2">${sp.dataElaboracao}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">Editar</button></td></tr>`;
+        if(sp) html += `<tr><td class="border px-4 py-2">${sp.codigo}</td><td class="border px-4 py-2">${sp.nome}</td><td class="border px-4 py-2">${sp.versao}</td><td class="border px-4 py-2">${sp.dataElaboracao}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">Edição</button></td></tr>`;
     });
     html += `</tbody></table>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela com a lista de documentos</h2>`;
-    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Documento</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Elaboração</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ação</th></tr></thead><tbody>`;
+    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código do documento</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de elaboração</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
     p.documentosId.forEach(docId => {
         const doc = getItemById(docId);
-        if(doc) html += `<tr><td class="border px-4 py-2">${doc.codigo} - ${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.dataElaboracao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${doc.id}')">Editar</button></td></tr>`;
+        if(doc) html += `<tr><td class="border px-4 py-2">${doc.codigo}</td><td class="border px-4 py-2">${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.dataElaboracao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${doc.id}')">Edição</button></td></tr>`;
     });
     html += `</tbody></table>`;
 
     // History Table
-    const historico = mockData.processos.filter(x => x.codigo === p.codigo && x.status === 'Inativo');
+    const historico = mockData.processos.filter(x => x.codigo === p.codigo && x.id !== p.id); // All other versions
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Histórico de Versões</h2>`;
     if(historico.length > 0) {
-        html += `<table class="min-w-full bg-white border">
+        html += `<table class="min-w-full bg-white border mb-6">
                     <thead class="bg-gray-200">
-                        <tr><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Edição</th><th class="border px-4 py-2">Ação</th></tr>
+                        <tr><th class="border px-4 py-2">Código do processo</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de revisão da versão</th><th class="border px-4 py-2">Estado</th><th class="border px-4 py-2">Ações</th></tr>
                     </thead>
                     <tbody>`;
+        // Sort descending by dataRevisao
+        historico.sort((a,b) => new Date(b.dataRevisao) - new Date(a.dataRevisao));
         historico.forEach(h => {
             html += `<tr class="historical-row">
+                        <td class="border px-4 py-2">${h.codigo}</td>
+                        <td class="border px-4 py-2">${h.nome}</td>
                         <td class="border px-4 py-2">${h.versao}</td>
                         <td class="border px-4 py-2">${h.dataRevisao}</td>
-                        <td class="border px-4 py-2">
+                        <td class="border px-4 py-2">${h.status}</td>
+                        <td class="border px-4 py-2 flex flex-wrap gap-2">
                             <button class="bg-gray-500 text-white px-3 py-1 rounded" onclick="navigateTo('I13', '${h.id}')">Detalhe Histórico</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I4', '${h.id}')">Edição</button>
+                            ${h.status !== 'Publicado' ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="publicarProcesso('${h.id}')">Publicar</button>` : ''}
                         </td>
                      </tr>`;
         });
         html += `</tbody></table>`;
     } else {
-        html += `<p class="text-gray-500">Nenhum histórico disponível.</p>`;
+        html += `<p class="text-gray-500 mb-6">Nenhum histórico disponível.</p>`;
     }
 
-    html += `<br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>`;
+    html += `<div class="flex gap-2">
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="novaRevisaoProcesso('${p.id}')">Edição</button>
+                <button class="bg-gray-600 text-white px-4 py-2 rounded" onclick="desativarProcesso('${p.id}')">Desativar</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
+                <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>
+             </div>`;
     return html;
 }
 
+
+let i4State = {
+    donos: [],
+    initializedForContext: null
+};
+
+window.i4AddDono = function() {
+    const emailInput = document.getElementById('i4-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email inválido.");
+    if (i4State.donos.find(d => d.email === email)) return alert("Email já adicionado.");
+    i4State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i4RemoveDono = function(email) {
+    if (i4State.donos.length <= 1) return alert("Atenção: O processo deve ter pelo menos um dono associado.");
+    i4State.donos = i4State.donos.filter(d => d.email !== email);
+    render();
+};
+
+window.guardarProcessoExistente = function(actionType, id) {
+    let p = mockData.processos.find(x => x.id === id);
+    if (!p) return;
+
+    const versao = document.getElementById('i4-versao').value.trim();
+    const dtElab = document.getElementById('i4-dt-elab').value;
+    const dtRev = document.getElementById('i4-dt-rev').value;
+
+    if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+    if (!dtElab) return alert("Data de Elaboração obrigatória.");
+    if (new Date(dtElab) > new Date()) return alert("A Data de Elaboração não pode ser uma data futura.");
+    if (!dtRev) return alert("Data de Revisão obrigatória.");
+    if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+
+    let targetP = p;
+    if (actionType === 'rascunho' && p.status !== 'Rascunho') {
+        // Create new draft record based on existing
+        targetP = JSON.parse(JSON.stringify(p));
+        targetP.id = 'P' + Date.now();
+        mockData.processos.push(targetP);
+    }
+
+    targetP.versao = versao;
+    targetP.dataElaboracao = dtElab;
+    targetP.dataRevisao = dtRev;
+    targetP.donos = [...i4State.donos];
+
+    if (actionType === 'rascunho') {
+        targetP.status = 'Rascunho';
+        alert('Guardado como Rascunho com sucesso! Pode aceder a partir da Interface I16.');
+        navigateTo('I16');
+    } else {
+        targetP.status = 'Publicado';
+        mockData.processos.forEach(x => {
+            if (x.codigo === targetP.codigo && x.id !== targetP.id && x.status === 'Publicado') {
+                x.status = 'Inativo';
+            }
+        });
+        alert('Publicado com sucesso! A versão ativada encontra-se agora disponível.');
+        navigateTo('I1');
+    }
+};
+
 function renderI4RevisaoProcesso() {
     const p = getItemById(currentState.contextId);
+    if(!p) return 'Processo não encontrado. <button onclick="navigateTo(\'I1\')">Voltar</button>';
+
+    if (i4State.initializedForContext !== currentState.contextId) {
+        i4State.donos = [...p.donos];
+        i4State.initializedForContext = currentState.contextId;
+    }
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I4] Edição de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Código (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.codigo}" readonly></div>
-            <div><label class="block font-bold">Nome (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.nome}" readonly></div>
-            <div><label class="block font-bold">Objetivo (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.objetivo}" readonly></div>
-            <div><label class="block font-bold">Âmbito (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.ambito}" readonly></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full" value="${p.dataElaboracao}"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full" value="${p.versao}"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full" value="${p.dataRevisao}"></div>
+            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.codigo}" readonly></div>
+            <div><label class="block font-bold">Nome</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.nome}" readonly></div>
+            <div><label class="block font-bold">Objetivo</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.objetivo}" readonly></div>
+            <div><label class="block font-bold">Âmbito</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.ambito}" readonly></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i4-dt-elab" class="border p-2 w-full" value="${p.dataElaboracao}"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i4-versao" class="border p-2 w-full" value="${p.versao}"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i4-dt-rev" class="border p-2 w-full" value="${p.dataRevisao}"></div>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Processo</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i4-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i4AddDono()">Adicionar</button>
             </div>
             <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-            p.donos.forEach(d => html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr>`);
+            i4State.donos.forEach(d => {
+                html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i4RemoveDono('${d.email}')">Remover</button></td></tr>`;
+            });
     html += `</tbody></table>
         </div>
 
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela com a lista de sub processos</h2>
             <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Código do sub processo</th><th class="p-2 border">Nome</th><th class="p-2 border">Versão</th><th class="p-2 border">Data de elaboração</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-            // Mock sub processes
-            html += `<tr><td class="p-2 border">SP-001</td><td class="p-2 border">Sub Processo Mock</td><td class="p-2 border">1.0</td><td class="p-2 border">2023-10-01</td><td class="p-2 border">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1">Editar</button>
-                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1">Desativar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>
-            </td></tr>`;
+            p.subProcessosId.forEach(spId => {
+                const sp = getItemById(spId);
+                if(sp) html += `<tr><td class="p-2 border">${sp.codigo}</td><td class="p-2 border">${sp.nome}</td><td class="p-2 border">${sp.versao}</td><td class="p-2 border">${sp.dataElaboracao}</td><td class="p-2 border">
+                    <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button>
+                    <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
+                    <button class="bg-gray-600 text-white px-2 py-1 rounded mr-1" onclick="desativarSubProcesso('${sp.id}')">Desativar</button>
+                    <button class="bg-red-600 text-white px-2 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
+                </td></tr>`;
+            });
     html += `</tbody></table>
         </div>
 
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela com a lista de documentos</h2>
             <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Código do documento</th><th class="p-2 border">Designação</th><th class="p-2 border">Versão</th><th class="p-2 border">Data de elaboração</th><th class="p-2 border">Tipo</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-            // Mock documents
-            html += `<tr><td class="p-2 border">DOC-001</td><td class="p-2 border">Documento Mock</td><td class="p-2 border">1.0</td><td class="p-2 border">2023-10-01</td><td class="p-2 border">Instrumento</td><td class="p-2 border">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1">Editar</button>
-                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1">Desativar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>
-            </td></tr>`;
-
+            p.documentosId.forEach(docId => {
+                const doc = getItemById(docId);
+                if(doc) html += `<tr><td class="p-2 border">${doc.codigo}</td><td class="p-2 border">${doc.designacao}</td><td class="p-2 border">${doc.versao}</td><td class="p-2 border">${doc.dataElaboracao}</td><td class="p-2 border">${doc.tipo}</td><td class="p-2 border">
+                    <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
+                    <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
+                    <button class="bg-gray-600 text-white px-2 py-1 rounded mr-1" onclick="desativarDocumento('${doc.id}')">Desativar</button>
+                    <button class="bg-red-600 text-white px-2 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                </td></tr>`;
+            });
     html += `</tbody></table>
         </div>
 
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho', '${p.id}')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcesso('publicar', '${p.id}')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I3', '${p.id}')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcessoExistente('rascunho', '${p.id}')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcessoExistente('publicar', '${p.id}')">Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>
         </div>
     </div>`;
     return html;
 }
 
+
+let i5State = {
+    initializedForContext: null,
+    processoPaiCodigo: '',
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i5ActionSearch = function() {
+    i5State.processoPaiCodigo = document.getElementById('i5-processo-pai').value;
+    i5State.pesquisaTexto = document.getElementById('i5-pesquisa').value;
+    render();
+};
+
+window.i5ActionSort = function(col) {
+    const existingIdx = i5State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i5State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i5State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i5State.sortColumns.splice(existingIdx, 1);
+    }
+    i5State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
 function renderI5ListaSubProcessos() {
-    let html = `<div class="flex justify-between items-center mb-4">
-                    <h1 class="text-3xl font-bold">[I5] Lista de Sub processos</h1>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I6')">Adicionar Sub processo</button>
-                </div>`;
-    html += `<div class="mb-4 flex gap-2">
-                <input type="text" placeholder="Pesquisa por Processo Pai, Código, Nome..." class="border p-2 rounded w-1/2">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Pesquisar</button>
-             </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Processo Pai</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
-    mockData.subProcessos.forEach(sp => {
-        if(sp.status === 'Publicado') {
-            html += `<tr><td class="border px-4 py-2">${sp.codigo}</td><td class="border px-4 py-2">${sp.processoPaiId}</td><td class="border px-4 py-2">${sp.nome}</td><td class="border px-4 py-2"><button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Editar</button><button class="bg-red-500 text-white px-3 py-1 rounded" onclick="desativarSubProcesso('${sp.id}')">Desativar</button></td></tr>`;
+    if (currentState.contextId && i5State.initializedForContext !== currentState.contextId) {
+        let parentP = mockData.processos.find(p => p.id === currentState.contextId);
+        i5State.processoPaiCodigo = parentP ? parentP.codigo : '';
+        i5State.initializedForContext = currentState.contextId;
+        i5State.pesquisaTexto = '';
+        i5State.sortColumns = [];
+    }
+
+    let processosUnicos = [];
+    mockData.processos.forEach(p => {
+        if (!processosUnicos.find(x => x.codigo === p.codigo)) {
+            processosUnicos.push({ codigo: p.codigo, nome: p.nome });
         }
     });
+    processosUnicos.sort((a,b) => a.nome.localeCompare(b.nome));
+    let dataListOptions = processosUnicos.map(p => `<option value="${p.codigo}">${p.codigo} - ${p.nome}</option>`).join('');
+
+    let html = `<div class="flex justify-between items-center mb-4">
+                    <h1 class="text-3xl font-bold">[I5] Lista de Sub processos</h1>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I6', 'RESET')">Adicionar Sub processo</button>
+                </div>`;
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/3">
+                    <label class="block font-bold mb-1">Código Processo Pai</label>
+                    <input type="text" id="i5-processo-pai" list="processos-list" class="border p-2 rounded w-full" value="${i5State.processoPaiCodigo}" placeholder="Selecione ou escreva o Código">
+                    <datalist id="processos-list">
+                        <option value="">Todos</option>
+                        ${dataListOptions}
+                    </datalist>
+                </div>
+                <div class="w-1/3">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i5-pesquisa" class="border p-2 rounded w-full" value="${i5State.pesquisaTexto}" placeholder="Código, Nome, Objetivo, Âmbito...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i5ActionSearch()">Pesquisar</button>
+                </div>
+             </div>`;
+
+    let result = mockData.subProcessos.filter(sp => sp.status === 'Publicado');
+
+    if (i5State.processoPaiCodigo) {
+        result = result.filter(sp => sp.processoPaiId === i5State.processoPaiCodigo);
+    }
+    if (i5State.pesquisaTexto) {
+        let t = i5State.pesquisaTexto.toLowerCase();
+        result = result.filter(sp =>
+            (sp.codigo && sp.codigo.toLowerCase().includes(t)) ||
+            (sp.nome && sp.nome.toLowerCase().includes(t)) ||
+            (sp.objetivo && sp.objetivo.toLowerCase().includes(t)) ||
+            (sp.ambito && sp.ambito.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i5State.sortColumns.length > 0) {
+            for (let sort of i5State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpPai = (a.processoPaiId || '').localeCompare(b.processoPaiId || '');
+            if (cmpPai !== 0) return cmpPai;
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpNome = (a.nome || '').localeCompare(b.nome || '');
+            if (cmpNome !== 0) return cmpNome;
+            let cmpObj = (a.objetivo || '').localeCompare(b.objetivo || '');
+            if (cmpObj !== 0) return cmpObj;
+            let cmpAmb = (a.ambito || '').localeCompare(b.ambito || '');
+            return cmpAmb;
+        }
+    });
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i5ActionSort('processoPaiId')">Código do processo Pai</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i5ActionSort('codigo')">Código do sub processo</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i5ActionSort('nome')">Nome</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i5ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i5ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="6" class="border px-4 py-2 text-center text-gray-500">Nenhum sub processo encontrado.</td></tr>`;
+    } else {
+        result.forEach(sp => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${sp.processoPaiId}</td>
+                        <td class="border px-4 py-2">${sp.codigo}</td>
+                        <td class="border px-4 py-2">${sp.nome}</td>
+                        <td class="border px-4 py-2">${sp.versao}</td>
+                        <td class="border px-4 py-2">${sp.dataElaboracao}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
+                            <button class="bg-indigo-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I9', '${sp.id}')">Documentos</button>
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2" onclick="desativarSubProcesso('${sp.id}')">Desativar</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
+                        </td>
+                     </tr>`;
+        });
+    }
+
     html += `</tbody></table><br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar para Home</button>`;
     return html;
 }
 
+
+let i6State = {
+    donos: [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }]
+};
+
+window.i6AddDono = function() {
+    const emailInput = document.getElementById('i6-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email inválido.");
+    if (i6State.donos.find(d => d.email === email)) return alert("Email já adicionado.");
+    i6State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i6RemoveDono = function(email) {
+    if (i6State.donos.length <= 1) return alert("Atenção: O sub processo deve ter pelo menos um dono associado.");
+    i6State.donos = i6State.donos.filter(d => d.email !== email);
+    render();
+};
+
 function renderI6CriacaoSubProcesso() {
+    if (currentState.view === 'I6' && currentState.contextId === 'RESET') {
+        i6State.donos = [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }];
+        currentState.contextId = null;
+    }
+
+    let processosUnicos = [];
+    mockData.processos.forEach(p => {
+        if (!processosUnicos.find(x => x.codigo === p.codigo)) {
+            processosUnicos.push({ codigo: p.codigo, nome: p.nome });
+        }
+    });
+    processosUnicos.sort((a,b) => a.nome.localeCompare(b.nome));
+    let dataListOptions = processosUnicos.map(p => `<option value="${p.codigo}">${p.nome} (${p.codigo})</option>`).join('');
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I6] Criação de Sub processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Processo Pai</label><select class="border p-2 w-full"><option>PROC-001 - Gestão de Qualidade</option></select></div>
-            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Nome</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Objetivo</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Âmbito</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Processo Pai</label><select id="i6-processo-pai" class="border p-2 w-full">${dataListOptions}</select></div>
+            <div><label class="block font-bold">Código</label><input type="text" id="i6-codigo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Nome</label><input type="text" id="i6-nome" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Objetivo</label><input type="text" id="i6-objetivo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Âmbito</label><input type="text" id="i6-ambito" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i6-dt-elab" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i6-versao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i6-dt-rev" class="border p-2 w-full"></div>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Sub Processo</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i6-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i6AddDono()">Adicionar</button>
             </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
+            i6State.donos.forEach(d => {
+                html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i6RemoveDono('${d.email}')">Remover</button></td></tr>`;
+            });
+    html += `</tbody></table>
         </div>
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('publicar')">Guardar e Publicar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarSubProcessoNovo('rascunho')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarSubProcessoNovo('publicar')">Guardar e Publicar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I5')">Voltar</button>
         </div>
     </div>`;
@@ -830,23 +1600,22 @@ function renderI7DetalheSubProcessoAtivo() {
     if(!sp) return `Sub processo não encontrado. <button onclick="navigateTo('I1')">Voltar</button>`;
 
     let html = `<div class="mb-4 flex justify-between items-center">
-                    <h1 class="text-3xl font-bold">[I7] Detalhe de Sub Processo (Ativo)</h1>
-                    <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onclick="alert('Funcionalidade Editar mockada')">Editar</button>
+                    <h1 class="text-3xl font-bold">[I7] Detalhe de Sub processo (Ativo)</h1>
+                    <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoSubProcesso('${sp.id}')">Edição</button>
                 </div>`;
 
-    html += `
-        <div class="grid grid-cols-2 gap-4 mb-6">
+    html += `<div class="bg-white p-6 border rounded shadow-sm mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-4">
             <div><strong>Processo Pai:</strong> ${sp.processoPaiId}</div>
             <div><strong>Código:</strong> ${sp.codigo}</div>
             <div><strong>Nome:</strong> ${sp.nome}</div>
             <div><strong>Objetivo:</strong> ${sp.objetivo}</div>
             <div><strong>Âmbito:</strong> ${sp.ambito}</div>
-            <div><strong>Data Elaboração:</strong> ${sp.dataElaboracao}</div>
+            <div><strong>Data de Elaboração:</strong> ${sp.dataElaboracao}</div>
             <div><strong>Versão:</strong> ${sp.versao}</div>
-            <div><strong>Data Edição:</strong> ${sp.dataRevisao}</div>
-            <div><strong>Status:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${sp.status}</span></div>
+            <div><strong>Data de revisão da versão:</strong> ${sp.dataRevisao}</div>
         </div>
-    `;
+    </div>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Donos do Sub Processo</h2>`;
     html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Email</th></tr></thead><tbody>`;
@@ -854,19 +1623,123 @@ function renderI7DetalheSubProcessoAtivo() {
     html += `</tbody></table>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela com a lista de documentos</h2>`;
-    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Documento</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Tipo</th></tr></thead><tbody>`;
+    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código do documento</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de elaboração</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
     sp.documentosId.forEach(docId => {
         const doc = getItemById(docId);
-        if(doc) html += `<tr><td class="border px-4 py-2">${doc.codigo} - ${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.tipo}</td></tr>`;
+        if(doc) html += `<tr><td class="border px-4 py-2">${doc.codigo}</td><td class="border px-4 py-2">${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.dataElaboracao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${doc.id}')">Edição</button></td></tr>`;
     });
     html += `</tbody></table>`;
 
-    html += `<br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>`;
+    // History Table
+    const historico = mockData.subProcessos.filter(x => x.codigo === sp.codigo && x.id !== sp.id);
+    html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Histórico de Versões</h2>`;
+    if(historico.length > 0) {
+        html += `<table class="min-w-full bg-white border mb-6">
+                    <thead class="bg-gray-200">
+                        <tr><th class="border px-4 py-2">Código do sub processo</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de revisão da versão</th><th class="border px-4 py-2">Estado</th><th class="border px-4 py-2">Ações</th></tr>
+                    </thead>
+                    <tbody>`;
+        historico.sort((a,b) => new Date(b.dataRevisao) - new Date(a.dataRevisao));
+        historico.forEach(h => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${h.codigo}</td>
+                        <td class="border px-4 py-2">${h.nome}</td>
+                        <td class="border px-4 py-2">${h.versao}</td>
+                        <td class="border px-4 py-2">${h.dataRevisao}</td>
+                        <td class="border px-4 py-2">${h.status}</td>
+                        <td class="border px-4 py-2 flex flex-wrap gap-2">
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded" onclick="navigateTo('I14', '${h.id}')">Detalhe Histórico</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${h.id}')">Edição</button>
+                            ${h.status !== 'Publicado' ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="publicarSubProcesso('${h.id}')">Publicar</button>` : ''}
+                        </td>
+                     </tr>`;
+        });
+        html += `</tbody></table>`;
+    } else {
+        html += `<p class="text-gray-500 mb-6">Nenhum histórico disponível.</p>`;
+    }
+
+    html += `<div class="flex gap-2">
+                <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I5')">Voltar</button>
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="novaRevisaoSubProcesso('${sp.id}')">Edição</button>
+                <button class="bg-gray-600 text-white px-4 py-2 rounded" onclick="desativarSubProcesso('${sp.id}')">Desativar</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
+             </div>`;
     return html;
 }
 
+
+let i8State = {
+    donos: [],
+    initializedForContext: null
+};
+
+window.i8AddDono = function() {
+    const emailInput = document.getElementById('i8-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email inválido.");
+    if (i8State.donos.find(d => d.email === email)) return alert("Email já adicionado.");
+    i8State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i8RemoveDono = function(email) {
+    if (i8State.donos.length <= 1) return alert("Atenção: O sub processo deve ter pelo menos um dono associado.");
+    i8State.donos = i8State.donos.filter(d => d.email !== email);
+    render();
+};
+
+window.guardarSubProcessoExistente = function(actionType, id) {
+    let sp = mockData.subProcessos.find(x => x.id === id);
+    if (!sp) return;
+
+    const versao = document.getElementById('i8-versao').value.trim();
+    const dtRev = document.getElementById('i8-dt-rev').value;
+
+    if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+    if (!dtRev) return alert("Data de Revisão obrigatória.");
+    if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+
+    let targetSp = sp;
+    if (actionType === 'rascunho' && sp.status !== 'Rascunho') {
+        targetSp = JSON.parse(JSON.stringify(sp));
+        targetSp.id = 'SP' + Date.now();
+        mockData.subProcessos.push(targetSp);
+
+        // Add to parent process array if active parent exists
+        let paiObj = mockData.processos.find(p => p.codigo === targetSp.processoPaiId && p.status === 'Publicado');
+        if (paiObj && !paiObj.subProcessosId.includes(targetSp.id)) paiObj.subProcessosId.push(targetSp.id);
+    }
+
+    targetSp.versao = versao;
+    targetSp.dataRevisao = dtRev;
+    targetSp.donos = [...i8State.donos];
+
+    if (actionType === 'rascunho') {
+        targetSp.status = 'Rascunho';
+        alert('Guardado como Rascunho com sucesso! Pode aceder a partir da Interface I17.');
+        navigateTo('I17');
+    } else {
+        targetSp.status = 'Publicado';
+        mockData.subProcessos.forEach(x => {
+            if (x.codigo === targetSp.codigo && x.id !== targetSp.id && x.status === 'Publicado') {
+                x.status = 'Inativo';
+            }
+        });
+        alert('Publicado com sucesso! A versão ativada encontra-se agora disponível.');
+        navigateTo('I5');
+    }
+};
+
 function renderI8RevisaoSubProcesso() {
     const sp = getItemById(currentState.contextId);
+    if(!sp) return 'Sub processo não encontrado. <button onclick="navigateTo(\'I5\')">Voltar</button>';
+
+    if (i8State.initializedForContext !== currentState.contextId) {
+        i8State.donos = [...sp.donos];
+        i8State.initializedForContext = currentState.contextId;
+    }
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I8] Edição de Sub processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
@@ -875,101 +1748,253 @@ function renderI8RevisaoSubProcesso() {
             <div><label class="block font-bold">Nome (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${sp.nome}" readonly></div>
             <div><label class="block font-bold">Objetivo (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${sp.objetivo}" readonly></div>
             <div><label class="block font-bold">Âmbito (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${sp.ambito}" readonly></div>
-            <div><label class="block font-bold">Data de Elaboração (Imutável)</label><input type="date" class="border p-2 w-full bg-gray-100" value="${sp.dataElaboracao}" readonly></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full" value="${sp.versao}"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full" value="${sp.dataRevisao || ''}"></div>
+            <div><label class="block font-bold">Data de Elaboração (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${sp.dataElaboracao}" readonly></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i8-versao" class="border p-2 w-full" value="${sp.versao}"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i8-dt-rev" class="border p-2 w-full" value="${sp.dataRevisao}"></div>
         </div>
-
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Sub Processo</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i8-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i8AddDono()">Adicionar</button>
             </div>
             <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-
-            if (sp.donos && sp.donos.length > 0) {
-                sp.donos.forEach(d => {
-                    html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr>`;
-                });
-            } else {
-                 html += `<tr><td class="p-2 border">Dono Exemplo</td><td class="p-2 border">dono@exemplo.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr>`;
-            }
-
+            i8State.donos.forEach(d => {
+                html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i8RemoveDono('${d.email}')">Remover</button></td></tr>`;
+            });
     html += `</tbody></table>
         </div>
 
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela com a lista de documentos</h2>
             <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Código do documento</th><th class="p-2 border">Designação</th><th class="p-2 border">Versão</th><th class="p-2 border">Data de elaboração</th><th class="p-2 border">Tipo</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-
-            // Mock documents
-            html += `<tr><td class="p-2 border">DOC-001</td><td class="p-2 border">Documento Mock</td><td class="p-2 border">1.0</td><td class="p-2 border">2023-10-01</td><td class="p-2 border">Instrumento</td><td class="p-2 border">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1">Editar</button>
-                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1">Desativar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>
-            </td></tr>`;
-
+            sp.documentosId.forEach(docId => {
+                const doc = getItemById(docId);
+                if(doc) html += `<tr><td class="p-2 border">${doc.codigo}</td><td class="p-2 border">${doc.designacao}</td><td class="p-2 border">${doc.versao}</td><td class="p-2 border">${doc.dataElaboracao}</td><td class="p-2 border">${doc.tipo}</td><td class="p-2 border">
+                    <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
+                    <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
+                    <button class="bg-gray-600 text-white px-2 py-1 rounded mr-1" onclick="desativarDocumento('${doc.id}')">Desativar</button>
+                    <button class="bg-red-600 text-white px-2 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                </td></tr>`;
+            });
     html += `</tbody></table>
         </div>
 
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('rascunho', '${sp.id}')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('publicar', '${sp.id}')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I7', '${sp.id}')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarSubProcessoExistente('rascunho', '${sp.id}')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarSubProcessoExistente('publicar', '${sp.id}')">Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I5')">Voltar</button>
         </div>
     </div>`;
     return html;
 }
 
+
+let i9State = {
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i9ActionSearch = function() {
+    i9State.pesquisaTexto = document.getElementById('i9-pesquisa').value;
+    render();
+};
+
+window.i9ActionSort = function(col) {
+    const existingIdx = i9State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i9State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i9State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i9State.sortColumns.splice(existingIdx, 1);
+    }
+    i9State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
 function renderI9ListaDocumentos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I9] Lista de Documentos</h1>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10')">Adicionar Documento</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10', 'RESET')">Adicionar Documento</button>
                 </div>`;
-    html += `<div class="mb-4 flex gap-2">
-                <input type="text" placeholder="Pesquisa por Processo Pai, Código, Designação..." class="border p-2 rounded w-1/2">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Pesquisar</button>
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/2">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i9-pesquisa" class="border p-2 rounded w-full" value="${i9State.pesquisaTexto}" placeholder="Pesquisa por Processo/Sub processo associado, Designação, Código do Documento...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i9ActionSearch()">Pesquisar</button>
+                </div>
              </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
-    mockData.documentos.forEach(doc => {
-        if(doc.status === 'Publicado') {
-            html += `<tr><td class="border px-4 py-2">${doc.codigo}</td><td class="border px-4 py-2">${doc.designacao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Editar</button><button class="bg-red-500 text-white px-3 py-1 rounded" onclick="desativarDocumento('${doc.id}')">Desativar</button></td></tr>`;
+
+    // Compute associated process/sub-process for documents
+    let docsWithAssoc = mockData.documentos.map(doc => {
+        let assocCodigos = [];
+        let pId = '', spId = '';
+        mockData.processos.forEach(p => {
+            if (p.documentosId && p.documentosId.includes(doc.id)) {
+                assocCodigos.push(p.codigo);
+                pId = p.codigo;
+            }
+        });
+        mockData.subProcessos.forEach(sp => {
+            if (sp.documentosId && sp.documentosId.includes(doc.id)) {
+                assocCodigos.push(sp.codigo);
+                pId = sp.processoPaiId;
+                spId = sp.codigo;
+            }
+        });
+        return {
+            ...doc,
+            associadosStr: assocCodigos.join(', '),
+            pId: pId,
+            spId: spId
+        };
+    });
+
+    let result = docsWithAssoc.filter(doc => doc.status === 'Publicado');
+
+    if (i9State.pesquisaTexto) {
+        let t = i9State.pesquisaTexto.toLowerCase();
+        result = result.filter(doc =>
+            (doc.codigo && doc.codigo.toLowerCase().includes(t)) ||
+            (doc.designacao && doc.designacao.toLowerCase().includes(t)) ||
+            (doc.associadosStr && doc.associadosStr.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i9State.sortColumns.length > 0) {
+            for (let sort of i9State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpPai = (a.pId || '').localeCompare(b.pId || '');
+            if (cmpPai !== 0) return cmpPai;
+            let cmpSp = (a.spId || '').localeCompare(b.spId || '');
+            if (cmpSp !== 0) return cmpSp;
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpDesig = (a.designacao || '').localeCompare(b.designacao || '');
+            return cmpDesig;
         }
     });
-    html += `</tbody></table><br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar para Home</button>`;
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('codigo')">Código do documento</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('associadosStr')">Código do processo / sub processo associado</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('designacao')">Designação</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('tipo')">Tipo</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="7" class="border px-4 py-2 text-center text-gray-500">Nenhum documento encontrado.</td></tr>`;
+    } else {
+        result.forEach(doc => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${doc.codigo}</td>
+                        <td class="border px-4 py-2">${doc.associadosStr}</td>
+                        <td class="border px-4 py-2">${doc.designacao}</td>
+                        <td class="border px-4 py-2">${doc.versao}</td>
+                        <td class="border px-4 py-2">${doc.dataElaboracao}</td>
+                        <td class="border px-4 py-2">${doc.tipo}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2" onclick="desativarDocumento('${doc.id}')">Desativar</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                        </td>
+                     </tr>`;
+        });
+    }
+
+    html += `</tbody></table>`;
     return html;
 }
 
+
+let i10State = {
+    donos: [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }]
+};
+
+window.i10AddDono = function() {
+    const emailInput = document.getElementById('i10-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email inválido.");
+    if (i10State.donos.find(d => d.email === email)) return alert("Email já adicionado.");
+    i10State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i10RemoveDono = function(email) {
+    if (i10State.donos.length <= 1) return alert("Atenção: O documento deve ter pelo menos um dono associado.");
+    i10State.donos = i10State.donos.filter(d => d.email !== email);
+    render();
+};
+
 function renderI10CriacaoDocumento() {
+    if (currentState.view === 'I10' && currentState.contextId === 'RESET') {
+        i10State.donos = [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }];
+        currentState.contextId = null;
+    }
+
+    let associadosUnicos = [];
+    mockData.processos.forEach(p => associadosUnicos.push({ id: p.id, label: 'P: ' + p.codigo + ' - ' + p.nome }));
+    mockData.subProcessos.forEach(sp => associadosUnicos.push({ id: sp.id, label: 'SP: ' + sp.codigo + ' - ' + sp.nome }));
+
+    associadosUnicos.sort((a,b) => a.label.localeCompare(b.label));
+    let options = associadosUnicos.map(x => `<option value="${x.id}">${x.label}</option>`).join('');
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I10] Criação de Documento</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Processo/Sub Processo Associado</label><select class="border p-2 w-full"><option>PROC-001</option></select></div>
-            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Designação</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Processo Associado</label><select id="i10-associado" class="border p-2 w-full">${options}</select></div>
+            <div><label class="block font-bold">Código</label><input type="text" id="i10-codigo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Designação</label><input type="text" id="i10-designacao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i10-versao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i10-dt-elab" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i10-dt-rev" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Tipo</label>
-                <select class="border p-2 w-full">
-                    <option>Instrumento</option><option>Regulamento</option><option>Orientação</option><option>Impresso</option>
+                <select id="i10-tipo" class="border p-2 w-full">
+                    <option value="">Selecione o Tipo</option>
+                    <option>Instrumento</option>
+                    <option>Regulamento</option>
+                    <option>Orientação</option>
+                    <option>Impresso</option>
                 </select>
             </div>
-            <div><label class="block font-bold">Upload Ficheiro</label><input type="file" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Upload de Ficheiro</label><input type="file" id="i10-file" class="border p-2 w-full"></div>
+        </div>
+        <div class="mb-4">
+            <button class="text-blue-600 underline">Download (Mock)</button>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Documento</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i10-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i10AddDono()">Adicionar</button>
             </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
+            i10State.donos.forEach(d => {
+                html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i10RemoveDono('${d.email}')">Remover</button></td></tr>`;
+            });
+    html += `</tbody></table>
         </div>
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumento('rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumento('publicar')">Guardar e Publicar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumentoNovo('rascunho')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumentoNovo('publicar')">Guardar e Publicar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I9')">Voltar</button>
         </div>
     </div>`;
@@ -980,62 +2005,194 @@ function renderI11DetalheDocumentoAtivo() {
     const doc = getItemById(currentState.contextId);
     if(!doc) return `Documento não encontrado. <button onclick="navigateTo('I1')">Voltar</button>`;
 
+    let assocLabel = '';
+    mockData.processos.forEach(p => { if(p.documentosId && p.documentosId.includes(doc.id)) assocLabel = p.codigo + ' - ' + p.nome; });
+    mockData.subProcessos.forEach(sp => { if(sp.documentosId && sp.documentosId.includes(doc.id)) assocLabel = sp.codigo + ' - ' + sp.nome; });
+
     let html = `<div class="mb-4 flex justify-between items-center">
                     <h1 class="text-3xl font-bold">[I11] Detalhe de Documento (Ativo)</h1>
-                    <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onclick="alert('Funcionalidade Editar mockada')">Editar</button>
+                    <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoDocumento('${doc.id}')">Edição</button>
                 </div>`;
 
-    html += `
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div><strong>Processo/Sub Processo Associado:</strong> P1-V2 (Mock)</div>
+    html += `<div class="bg-white p-6 border rounded shadow-sm mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><strong>Processo Associado:</strong> ${assocLabel}</div>
             <div><strong>Código:</strong> ${doc.codigo}</div>
             <div><strong>Designação:</strong> ${doc.designacao}</div>
             <div><strong>Versão:</strong> ${doc.versao}</div>
-            <div><strong>Data Elaboração:</strong> ${doc.dataElaboracao}</div>
-            <div><strong>Data Edição:</strong> ${doc.dataRevisao}</div>
+            <div><strong>Data de Elaboração:</strong> ${doc.dataElaboracao}</div>
+            <div><strong>Data de revisão da versão:</strong> ${doc.dataRevisao}</div>
             <div><strong>Tipo:</strong> ${doc.tipo}</div>
-            <div><strong>Status:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${doc.status}</span></div>
+            <div><strong>Estado:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${doc.status}</span></div>
+            <div><strong>Upload de Ficheiro:</strong> <button class="text-blue-600 underline">Download</button></div>
         </div>
-    `;
+    </div>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Donos do Documento</h2>`;
     html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Email</th></tr></thead><tbody>`;
     doc.donos.forEach(d => html += `<tr><td class="border px-4 py-2">${d.nome}</td><td class="border px-4 py-2">${d.email}</td></tr>`);
     html += `</tbody></table>`;
 
-    html += `<div class="mb-6"><strong>Upload de Ficheiro:</strong> [Download Mock]</div>`;
+    // History Table
+    const historico = mockData.documentos.filter(x => x.codigo === doc.codigo && x.id !== doc.id);
+    html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Histórico de Versões</h2>`;
+    if(historico.length > 0) {
+        html += `<table class="min-w-full bg-white border mb-6">
+                    <thead class="bg-gray-200">
+                        <tr><th class="border px-4 py-2">Código do documento</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de revisão da versão</th><th class="border px-4 py-2">Estado</th><th class="border px-4 py-2">Ações</th></tr>
+                    </thead>
+                    <tbody>`;
+        historico.sort((a,b) => new Date(b.dataRevisao) - new Date(a.dataRevisao));
+        historico.forEach(h => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${h.codigo}</td>
+                        <td class="border px-4 py-2">${h.designacao}</td>
+                        <td class="border px-4 py-2">${h.versao}</td>
+                        <td class="border px-4 py-2">${h.dataRevisao}</td>
+                        <td class="border px-4 py-2">${h.status}</td>
+                        <td class="border px-4 py-2 flex flex-wrap gap-2">
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded" onclick="navigateTo('I15', '${h.id}')">Detalhe Histórico</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${h.id}')">Edição</button>
+                            ${h.status !== 'Publicado' ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="publicarDocumento('${h.id}')">Publicar</button>` : ''}
+                        </td>
+                     </tr>`;
+        });
+        html += `</tbody></table>`;
+    } else {
+        html += `<p class="text-gray-500 mb-6">Nenhum histórico disponível.</p>`;
+    }
 
-    html += `<br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>`;
+    html += `<div class="flex gap-2">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded">Download</button>
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="novaRevisaoDocumento('${doc.id}')">Edição</button>
+                <button class="bg-gray-600 text-white px-4 py-2 rounded" onclick="desativarDocumento('${doc.id}')">Desativar</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I9')">Voltar</button>
+             </div>`;
     return html;
 }
 
+
+let i12State = {
+    donos: [],
+    initializedForContext: null
+};
+
+window.i12AddDono = function() {
+    const emailInput = document.getElementById('i12-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email inválido.");
+    if (i12State.donos.find(d => d.email === email)) return alert("Email já adicionado.");
+    i12State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i12RemoveDono = function(email) {
+    if (i12State.donos.length <= 1) return alert("Atenção: O documento deve ter pelo menos um dono associado.");
+    i12State.donos = i12State.donos.filter(d => d.email !== email);
+    render();
+};
+
+window.guardarDocumentoExistente = function(actionType, id) {
+    let doc = mockData.documentos.find(x => x.id === id);
+    if (!doc) return;
+
+    const versao = document.getElementById('i12-versao').value.trim();
+    const dtRev = document.getElementById('i12-dt-rev').value;
+    const tipo = document.getElementById('i12-tipo').value;
+
+    if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+    if (!dtRev) return alert("Data de Revisão obrigatória.");
+    if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+    if (!tipo) return alert("Tipo obrigatório.");
+
+    let targetDoc = doc;
+    if (actionType === 'rascunho' && doc.status !== 'Rascunho') {
+        targetDoc = JSON.parse(JSON.stringify(doc));
+        targetDoc.id = 'DOC' + Date.now();
+        mockData.documentos.push(targetDoc);
+
+        // Find parent and attach the new doc draft id to it
+        let p = mockData.processos.find(x => x.documentosId && x.documentosId.includes(doc.id) && x.status === 'Publicado');
+        if (p && !p.documentosId.includes(targetDoc.id)) p.documentosId.push(targetDoc.id);
+        else {
+            let sp = mockData.subProcessos.find(x => x.documentosId && x.documentosId.includes(doc.id) && x.status === 'Publicado');
+            if (sp && !sp.documentosId.includes(targetDoc.id)) sp.documentosId.push(targetDoc.id);
+        }
+    }
+
+    targetDoc.versao = versao;
+    targetDoc.dataRevisao = dtRev;
+    targetDoc.tipo = tipo;
+    targetDoc.donos = [...i12State.donos];
+
+    if (actionType === 'rascunho') {
+        targetDoc.status = 'Rascunho';
+        alert('Guardado como Rascunho com sucesso!');
+        navigateTo('I18');
+    } else {
+        targetDoc.status = 'Publicado';
+        mockData.documentos.forEach(x => {
+            if (x.codigo === targetDoc.codigo && x.id !== targetDoc.id && x.status === 'Publicado') {
+                x.status = 'Inativo';
+            }
+        });
+        alert('Publicado com sucesso! A versão ativada encontra-se agora disponível.');
+        navigateTo('I9');
+    }
+};
+
 function renderI12RevisaoDocumento() {
     const doc = getItemById(currentState.contextId);
+    if(!doc) return 'Documento não encontrado. <button onclick="navigateTo(\'I9\')">Voltar</button>';
+
+    if (i12State.initializedForContext !== currentState.contextId) {
+        i12State.donos = [...doc.donos];
+        i12State.initializedForContext = currentState.contextId;
+    }
+
+    let assocLabel = '';
+    mockData.processos.forEach(p => { if(p.documentosId && p.documentosId.includes(doc.id)) assocLabel = p.codigo + ' - ' + p.nome; });
+    mockData.subProcessos.forEach(sp => { if(sp.documentosId && sp.documentosId.includes(doc.id)) assocLabel = sp.codigo + ' - ' + sp.nome; });
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I12] Edição de Documento</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Processo/Sub processo Associado (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="P1-V2 (Mock)" readonly></div>
+            <div><label class="block font-bold">Processo Associado (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${assocLabel}" readonly></div>
             <div><label class="block font-bold">Código (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${doc.codigo}" readonly></div>
             <div><label class="block font-bold">Designação (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${doc.designacao}" readonly></div>
-            <div><label class="block font-bold">Data de Elaboração (Imutável)</label><input type="date" class="border p-2 w-full bg-gray-100" value="${doc.dataElaboracao}" readonly></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full" value="${doc.versao}"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full" value="${doc.dataRevisao}"></div>
-            <div><label class="block font-bold">Tipo</label><select class="border p-2 w-full"><option selected>${doc.tipo}</option><option>Instrumento</option><option>Regulamento</option></select></div>
-            <div><label class="block font-bold">Upload Novo Ficheiro</label><input type="file" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Download Atual</label><button class="bg-blue-600 text-white px-3 py-1 mt-2 rounded">Download</button></div>
+            <div><label class="block font-bold">Data de Elaboração (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${doc.dataElaboracao}" readonly></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i12-versao" class="border p-2 w-full" value="${doc.versao}"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i12-dt-rev" class="border p-2 w-full" value="${doc.dataRevisao}"></div>
+            <div><label class="block font-bold">Tipo</label>
+                <select id="i12-tipo" class="border p-2 w-full">
+                    <option ${doc.tipo === 'Instrumento' ? 'selected' : ''}>Instrumento</option>
+                    <option ${doc.tipo === 'Regulamento' ? 'selected' : ''}>Regulamento</option>
+                    <option ${doc.tipo === 'Orientação' ? 'selected' : ''}>Orientação</option>
+                    <option ${doc.tipo === 'Impresso' ? 'selected' : ''}>Impresso</option>
+                </select>
+            </div>
+            <div><label class="block font-bold">Upload de Ficheiro</label><input type="file" id="i12-file" class="border p-2 w-full"></div>
+        </div>
+        <div class="mb-4">
+            <button class="text-blue-600 underline">Download (Mock)</button>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Documento</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i12-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i12AddDono()">Adicionar</button>
             </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
+            i12State.donos.forEach(d => {
+                html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i12RemoveDono('${d.email}')">Remover</button></td></tr>`;
+            });
+    html += `</tbody></table>
         </div>
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumento('rascunho', '${doc.id}')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumento('publicar', '${doc.id}')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I11', '${doc.id}')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumentoExistente('rascunho', '${doc.id}')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumentoExistente('publicar', '${doc.id}')">Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I9')">Voltar</button>
         </div>
     </div>`;
     return html;
