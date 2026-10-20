@@ -1047,22 +1047,138 @@ function renderI8RevisaoSubProcesso() {
     return html;
 }
 
+
+let i9State = {
+    pesquisaTexto: '',
+    sortColumns: []
+};
+
+window.i9ActionSearch = function() {
+    i9State.pesquisaTexto = document.getElementById('i9-pesquisa').value;
+    render();
+};
+
+window.i9ActionSort = function(col) {
+    const existingIdx = i9State.sortColumns.findIndex(x => x.col === col);
+    let dir = 'asc';
+    if (existingIdx === 0) {
+        dir = i9State.sortColumns[0].dir === 'asc' ? 'desc' : 'asc';
+        i9State.sortColumns.splice(0, 1);
+    } else if (existingIdx > 0) {
+        i9State.sortColumns.splice(existingIdx, 1);
+    }
+    i9State.sortColumns.unshift({ col: col, dir: dir });
+    render();
+};
+
 function renderI9ListaDocumentos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I9] Lista de Documentos</h1>
                     <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10')">Adicionar Documento</button>
                 </div>`;
-    html += `<div class="mb-4 flex gap-2">
-                <input type="text" placeholder="Pesquisa por Processo Pai, Código, Designação..." class="border p-2 rounded w-1/2">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Pesquisar</button>
+    html += `<div class="mb-4 flex gap-4 items-end">
+                <div class="w-1/2">
+                    <label class="block font-bold mb-1">Pesquisa</label>
+                    <input type="text" id="i9-pesquisa" class="border p-2 rounded w-full" value="${i9State.pesquisaTexto}" placeholder="Pesquisa por Processo/Sub processo associado, Designação, Código do Documento...">
+                </div>
+                <div>
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i9ActionSearch()">Pesquisar</button>
+                </div>
              </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
-    mockData.documentos.forEach(doc => {
-        if(doc.status === 'Publicado') {
-            html += `<tr><td class="border px-4 py-2">${doc.codigo}</td><td class="border px-4 py-2">${doc.designacao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Editar</button><button class="bg-red-500 text-white px-3 py-1 rounded" onclick="desativarDocumento('${doc.id}')">Desativar</button></td></tr>`;
+
+    // Compute associated process/sub-process for documents
+    let docsWithAssoc = mockData.documentos.map(doc => {
+        let assocCodigos = [];
+        let pId = '', spId = '';
+        mockData.processos.forEach(p => {
+            if (p.documentosId && p.documentosId.includes(doc.id)) {
+                assocCodigos.push(p.codigo);
+                pId = p.codigo;
+            }
+        });
+        mockData.subProcessos.forEach(sp => {
+            if (sp.documentosId && sp.documentosId.includes(doc.id)) {
+                assocCodigos.push(sp.codigo);
+                pId = sp.processoPaiId;
+                spId = sp.codigo;
+            }
+        });
+        return {
+            ...doc,
+            associadosStr: assocCodigos.join(', '),
+            pId: pId,
+            spId: spId
+        };
+    });
+
+    let result = docsWithAssoc.filter(doc => doc.status === 'Publicado');
+
+    if (i9State.pesquisaTexto) {
+        let t = i9State.pesquisaTexto.toLowerCase();
+        result = result.filter(doc =>
+            (doc.codigo && doc.codigo.toLowerCase().includes(t)) ||
+            (doc.designacao && doc.designacao.toLowerCase().includes(t)) ||
+            (doc.associadosStr && doc.associadosStr.toLowerCase().includes(t))
+        );
+    }
+
+    result.sort((a, b) => {
+        if (i9State.sortColumns.length > 0) {
+            for (let sort of i9State.sortColumns) {
+                let valA = a[sort.col] || '';
+                let valB = b[sort.col] || '';
+                let cmp = valA.toString().localeCompare(valB.toString());
+                if (cmp !== 0) return sort.dir === 'asc' ? cmp : -cmp;
+            }
+            return 0;
+        } else {
+            let cmpPai = (a.pId || '').localeCompare(b.pId || '');
+            if (cmpPai !== 0) return cmpPai;
+            let cmpSp = (a.spId || '').localeCompare(b.spId || '');
+            if (cmpSp !== 0) return cmpSp;
+            let cmpCod = (a.codigo || '').localeCompare(b.codigo || '');
+            if (cmpCod !== 0) return cmpCod;
+            let cmpDesig = (a.designacao || '').localeCompare(b.designacao || '');
+            return cmpDesig;
         }
     });
-    html += `</tbody></table><br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar para Home</button>`;
+
+    html += `<table class="min-w-full bg-white border">
+                <thead class="bg-gray-200">
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('codigo')">Código do documento</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('associadosStr')">Código do processo / sub processo associado</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('designacao')">Designação</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="i9ActionSort('tipo')">Tipo</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+    if (result.length === 0) {
+        html += `<tr><td colspan="7" class="border px-4 py-2 text-center text-gray-500">Nenhum documento encontrado.</td></tr>`;
+    } else {
+        result.forEach(doc => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${doc.codigo}</td>
+                        <td class="border px-4 py-2">${doc.associadosStr}</td>
+                        <td class="border px-4 py-2">${doc.designacao}</td>
+                        <td class="border px-4 py-2">${doc.versao}</td>
+                        <td class="border px-4 py-2">${doc.dataElaboracao}</td>
+                        <td class="border px-4 py-2">${doc.tipo}</td>
+                        <td class="border px-4 py-2">
+                            <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2" onclick="desativarDocumento('${doc.id}')">Desativar</button>
+                            <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                        </td>
+                     </tr>`;
+        });
+    }
+
+    html += `</tbody></table>`;
     return html;
 }
 
