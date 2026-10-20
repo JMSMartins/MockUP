@@ -249,6 +249,20 @@ function desativarSubProcesso(spId) {
     render();
 }
 
+
+function publicarDocumento(id) {
+    const doc = mockData.documentos.find(x => x.id === id);
+    if (!doc) return;
+    mockData.documentos.forEach(x => {
+        if (x.codigo === doc.codigo && x.id !== doc.id && x.status === 'Publicado') {
+            x.status = 'Inativo';
+        }
+    });
+    doc.status = 'Publicado';
+    alert('Versão publicada com sucesso!');
+    render();
+}
+
 function desativarDocumento(docId) {
     const doc = mockData.documentos.find(x => x.id === docId);
     if (!doc || doc.status !== 'Publicado') return;
@@ -456,6 +470,60 @@ function guardarSubProcesso(actionType, id = null) {
         navigateTo('I5');
     }
 }
+
+
+window.guardarDocumentoNovo = function(actionType) {
+    const assoc = document.getElementById('i10-associado').value;
+    const codigo = document.getElementById('i10-codigo').value.trim();
+    const designacao = document.getElementById('i10-designacao').value.trim();
+    const versao = document.getElementById('i10-versao').value.trim();
+    const dtElab = document.getElementById('i10-dt-elab').value;
+    const dtRev = document.getElementById('i10-dt-rev').value;
+    const tipo = document.getElementById('i10-tipo').value;
+    const file = document.getElementById('i10-file').value;
+
+    if (!assoc) return alert("Processo Associado obrigatório.");
+    if (!codigo) return alert("Código obrigatório. Não aceita apenas espaços em branco.");
+    if (mockData.documentos.find(d => d.codigo === codigo)) return alert("O código indicado já existe no sistema.");
+    if (!designacao) return alert("Designação obrigatória. Não aceita apenas espaços em branco.");
+    if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+    if (!dtElab) return alert("Data de Elaboração obrigatória.");
+    if (new Date(dtElab) > new Date()) return alert("A Data de Elaboração não pode ser uma data futura.");
+    if (!dtRev) return alert("Data de Revisão obrigatória.");
+    if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+    if (!tipo) return alert("Tipo obrigatório.");
+    if (!file) return alert("Upload de ficheiro obrigatório.");
+
+    let doc = {
+        id: 'DOC' + Date.now(),
+        codigo: codigo,
+        designacao: designacao,
+        versao: versao,
+        dataElaboracao: dtElab,
+        dataRevisao: dtRev,
+        tipo: tipo,
+        donos: [...i10State.donos]
+    };
+    mockData.documentos.push(doc);
+
+    // Relate to parent
+    let p = mockData.processos.find(x => x.id === assoc);
+    if (p) p.documentosId.push(doc.id);
+    else {
+        let sp = mockData.subProcessos.find(x => x.id === assoc);
+        if (sp) sp.documentosId.push(doc.id);
+    }
+
+    if (actionType === 'rascunho') {
+        doc.status = 'Rascunho';
+        alert('Guardado como Rascunho com sucesso!');
+        navigateTo('I18');
+    } else {
+        doc.status = 'Publicado';
+        alert('Publicado com sucesso!');
+        navigateTo('I9');
+    }
+};
 
 function guardarDocumento(actionType, id = null) {
     let doc = mockData.documentos.find(x => x.id === id);
@@ -1215,19 +1283,27 @@ window.guardarProcessoExistente = function(actionType, id) {
     if (!dtRev) return alert("Data de Revisão obrigatória.");
     if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
 
-    p.versao = versao;
-    p.dataElaboracao = dtElab;
-    p.dataRevisao = dtRev;
-    p.donos = [...i4State.donos];
+    let targetP = p;
+    if (actionType === 'rascunho' && p.status !== 'Rascunho') {
+        // Create new draft record based on existing
+        targetP = JSON.parse(JSON.stringify(p));
+        targetP.id = 'P' + Date.now();
+        mockData.processos.push(targetP);
+    }
+
+    targetP.versao = versao;
+    targetP.dataElaboracao = dtElab;
+    targetP.dataRevisao = dtRev;
+    targetP.donos = [...i4State.donos];
 
     if (actionType === 'rascunho') {
-        p.status = 'Rascunho';
+        targetP.status = 'Rascunho';
         alert('Guardado como Rascunho com sucesso! Pode aceder a partir da Interface I16.');
         navigateTo('I16');
     } else {
-        p.status = 'Publicado';
+        targetP.status = 'Publicado';
         mockData.processos.forEach(x => {
-            if (x.codigo === p.codigo && x.id !== p.id && x.status === 'Publicado') {
+            if (x.codigo === targetP.codigo && x.id !== targetP.id && x.status === 'Publicado') {
                 x.status = 'Inativo';
             }
         });
@@ -1624,18 +1700,29 @@ window.guardarSubProcessoExistente = function(actionType, id) {
     if (!dtRev) return alert("Data de Revisão obrigatória.");
     if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
 
-    sp.versao = versao;
-    sp.dataRevisao = dtRev;
-    sp.donos = [...i8State.donos];
+    let targetSp = sp;
+    if (actionType === 'rascunho' && sp.status !== 'Rascunho') {
+        targetSp = JSON.parse(JSON.stringify(sp));
+        targetSp.id = 'SP' + Date.now();
+        mockData.subProcessos.push(targetSp);
+
+        // Add to parent process array if active parent exists
+        let paiObj = mockData.processos.find(p => p.codigo === targetSp.processoPaiId && p.status === 'Publicado');
+        if (paiObj && !paiObj.subProcessosId.includes(targetSp.id)) paiObj.subProcessosId.push(targetSp.id);
+    }
+
+    targetSp.versao = versao;
+    targetSp.dataRevisao = dtRev;
+    targetSp.donos = [...i8State.donos];
 
     if (actionType === 'rascunho') {
-        sp.status = 'Rascunho';
+        targetSp.status = 'Rascunho';
         alert('Guardado como Rascunho com sucesso! Pode aceder a partir da Interface I17.');
         navigateTo('I17');
     } else {
-        sp.status = 'Publicado';
+        targetSp.status = 'Publicado';
         mockData.subProcessos.forEach(x => {
-            if (x.codigo === sp.codigo && x.id !== sp.id && x.status === 'Publicado') {
+            if (x.codigo === targetSp.codigo && x.id !== targetSp.id && x.status === 'Publicado') {
                 x.status = 'Inativo';
             }
         });
@@ -1729,7 +1816,7 @@ window.i9ActionSort = function(col) {
 function renderI9ListaDocumentos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I9] Lista de Documentos</h1>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10')">Adicionar Documento</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10', 'RESET')">Adicionar Documento</button>
                 </div>`;
     html += `<div class="mb-4 flex gap-4 items-end">
                 <div class="w-1/2">
@@ -1837,34 +1924,77 @@ function renderI9ListaDocumentos() {
     return html;
 }
 
+
+let i10State = {
+    donos: [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }]
+};
+
+window.i10AddDono = function() {
+    const emailInput = document.getElementById('i10-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email inválido.");
+    if (i10State.donos.find(d => d.email === email)) return alert("Email já adicionado.");
+    i10State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i10RemoveDono = function(email) {
+    if (i10State.donos.length <= 1) return alert("Atenção: O documento deve ter pelo menos um dono associado.");
+    i10State.donos = i10State.donos.filter(d => d.email !== email);
+    render();
+};
+
 function renderI10CriacaoDocumento() {
+    if (currentState.view === 'I10' && currentState.contextId === 'RESET') {
+        i10State.donos = [{ nome: 'Atual Utilizador', email: 'user@empresa.com' }];
+        currentState.contextId = null;
+    }
+
+    let associadosUnicos = [];
+    mockData.processos.forEach(p => associadosUnicos.push({ id: p.id, label: 'P: ' + p.codigo + ' - ' + p.nome }));
+    mockData.subProcessos.forEach(sp => associadosUnicos.push({ id: sp.id, label: 'SP: ' + sp.codigo + ' - ' + sp.nome }));
+
+    associadosUnicos.sort((a,b) => a.label.localeCompare(b.label));
+    let options = associadosUnicos.map(x => `<option value="${x.id}">${x.label}</option>`).join('');
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I10] Criação de Documento</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Processo/Sub Processo Associado</label><select class="border p-2 w-full"><option>PROC-001</option></select></div>
-            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Designação</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Processo Associado</label><select id="i10-associado" class="border p-2 w-full">${options}</select></div>
+            <div><label class="block font-bold">Código</label><input type="text" id="i10-codigo" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Designação</label><input type="text" id="i10-designacao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i10-versao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i10-dt-elab" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i10-dt-rev" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Tipo</label>
-                <select class="border p-2 w-full">
-                    <option>Instrumento</option><option>Regulamento</option><option>Orientação</option><option>Impresso</option>
+                <select id="i10-tipo" class="border p-2 w-full">
+                    <option value="">Selecione o Tipo</option>
+                    <option>Instrumento</option>
+                    <option>Regulamento</option>
+                    <option>Orientação</option>
+                    <option>Impresso</option>
                 </select>
             </div>
-            <div><label class="block font-bold">Upload Ficheiro</label><input type="file" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Upload de Ficheiro</label><input type="file" id="i10-file" class="border p-2 w-full"></div>
+        </div>
+        <div class="mb-4">
+            <button class="text-blue-600 underline">Download (Mock)</button>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Documento</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i10-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i10AddDono()">Adicionar</button>
             </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
+            i10State.donos.forEach(d => {
+                html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i10RemoveDono('${d.email}')">Remover</button></td></tr>`;
+            });
+    html += `</tbody></table>
         </div>
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumento('rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumento('publicar')">Guardar e Publicar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumentoNovo('rascunho')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumentoNovo('publicar')">Guardar e Publicar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I9')">Voltar</button>
         </div>
     </div>`;
@@ -1875,62 +2005,194 @@ function renderI11DetalheDocumentoAtivo() {
     const doc = getItemById(currentState.contextId);
     if(!doc) return `Documento não encontrado. <button onclick="navigateTo('I1')">Voltar</button>`;
 
+    let assocLabel = '';
+    mockData.processos.forEach(p => { if(p.documentosId && p.documentosId.includes(doc.id)) assocLabel = p.codigo + ' - ' + p.nome; });
+    mockData.subProcessos.forEach(sp => { if(sp.documentosId && sp.documentosId.includes(doc.id)) assocLabel = sp.codigo + ' - ' + sp.nome; });
+
     let html = `<div class="mb-4 flex justify-between items-center">
                     <h1 class="text-3xl font-bold">[I11] Detalhe de Documento (Ativo)</h1>
-                    <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onclick="alert('Funcionalidade Editar mockada')">Editar</button>
+                    <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoDocumento('${doc.id}')">Edição</button>
                 </div>`;
 
-    html += `
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div><strong>Processo/Sub Processo Associado:</strong> P1-V2 (Mock)</div>
+    html += `<div class="bg-white p-6 border rounded shadow-sm mb-6">
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><strong>Processo Associado:</strong> ${assocLabel}</div>
             <div><strong>Código:</strong> ${doc.codigo}</div>
             <div><strong>Designação:</strong> ${doc.designacao}</div>
             <div><strong>Versão:</strong> ${doc.versao}</div>
-            <div><strong>Data Elaboração:</strong> ${doc.dataElaboracao}</div>
-            <div><strong>Data Edição:</strong> ${doc.dataRevisao}</div>
+            <div><strong>Data de Elaboração:</strong> ${doc.dataElaboracao}</div>
+            <div><strong>Data de revisão da versão:</strong> ${doc.dataRevisao}</div>
             <div><strong>Tipo:</strong> ${doc.tipo}</div>
-            <div><strong>Status:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${doc.status}</span></div>
+            <div><strong>Estado:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${doc.status}</span></div>
+            <div><strong>Upload de Ficheiro:</strong> <button class="text-blue-600 underline">Download</button></div>
         </div>
-    `;
+    </div>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Donos do Documento</h2>`;
     html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Email</th></tr></thead><tbody>`;
     doc.donos.forEach(d => html += `<tr><td class="border px-4 py-2">${d.nome}</td><td class="border px-4 py-2">${d.email}</td></tr>`);
     html += `</tbody></table>`;
 
-    html += `<div class="mb-6"><strong>Upload de Ficheiro:</strong> [Download Mock]</div>`;
+    // History Table
+    const historico = mockData.documentos.filter(x => x.codigo === doc.codigo && x.id !== doc.id);
+    html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Histórico de Versões</h2>`;
+    if(historico.length > 0) {
+        html += `<table class="min-w-full bg-white border mb-6">
+                    <thead class="bg-gray-200">
+                        <tr><th class="border px-4 py-2">Código do documento</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de revisão da versão</th><th class="border px-4 py-2">Estado</th><th class="border px-4 py-2">Ações</th></tr>
+                    </thead>
+                    <tbody>`;
+        historico.sort((a,b) => new Date(b.dataRevisao) - new Date(a.dataRevisao));
+        historico.forEach(h => {
+            html += `<tr>
+                        <td class="border px-4 py-2">${h.codigo}</td>
+                        <td class="border px-4 py-2">${h.designacao}</td>
+                        <td class="border px-4 py-2">${h.versao}</td>
+                        <td class="border px-4 py-2">${h.dataRevisao}</td>
+                        <td class="border px-4 py-2">${h.status}</td>
+                        <td class="border px-4 py-2 flex flex-wrap gap-2">
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded" onclick="navigateTo('I15', '${h.id}')">Detalhe Histórico</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${h.id}')">Edição</button>
+                            ${h.status !== 'Publicado' ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="publicarDocumento('${h.id}')">Publicar</button>` : ''}
+                        </td>
+                     </tr>`;
+        });
+        html += `</tbody></table>`;
+    } else {
+        html += `<p class="text-gray-500 mb-6">Nenhum histórico disponível.</p>`;
+    }
 
-    html += `<br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>`;
+    html += `<div class="flex gap-2">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded">Download</button>
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="novaRevisaoDocumento('${doc.id}')">Edição</button>
+                <button class="bg-gray-600 text-white px-4 py-2 rounded" onclick="desativarDocumento('${doc.id}')">Desativar</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
+                <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I9')">Voltar</button>
+             </div>`;
     return html;
 }
 
+
+let i12State = {
+    donos: [],
+    initializedForContext: null
+};
+
+window.i12AddDono = function() {
+    const emailInput = document.getElementById('i12-email-dono');
+    const email = emailInput.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("Email inválido.");
+    if (i12State.donos.find(d => d.email === email)) return alert("Email já adicionado.");
+    i12State.donos.push({ nome: email.split('@')[0], email: email });
+    render();
+};
+
+window.i12RemoveDono = function(email) {
+    if (i12State.donos.length <= 1) return alert("Atenção: O documento deve ter pelo menos um dono associado.");
+    i12State.donos = i12State.donos.filter(d => d.email !== email);
+    render();
+};
+
+window.guardarDocumentoExistente = function(actionType, id) {
+    let doc = mockData.documentos.find(x => x.id === id);
+    if (!doc) return;
+
+    const versao = document.getElementById('i12-versao').value.trim();
+    const dtRev = document.getElementById('i12-dt-rev').value;
+    const tipo = document.getElementById('i12-tipo').value;
+
+    if (!versao) return alert("Versão obrigatória. Não aceita apenas espaços em branco.");
+    if (!dtRev) return alert("Data de Revisão obrigatória.");
+    if (new Date(dtRev) > new Date()) return alert("A Data de Revisão não pode ser uma data futura.");
+    if (!tipo) return alert("Tipo obrigatório.");
+
+    let targetDoc = doc;
+    if (actionType === 'rascunho' && doc.status !== 'Rascunho') {
+        targetDoc = JSON.parse(JSON.stringify(doc));
+        targetDoc.id = 'DOC' + Date.now();
+        mockData.documentos.push(targetDoc);
+
+        // Find parent and attach the new doc draft id to it
+        let p = mockData.processos.find(x => x.documentosId && x.documentosId.includes(doc.id) && x.status === 'Publicado');
+        if (p && !p.documentosId.includes(targetDoc.id)) p.documentosId.push(targetDoc.id);
+        else {
+            let sp = mockData.subProcessos.find(x => x.documentosId && x.documentosId.includes(doc.id) && x.status === 'Publicado');
+            if (sp && !sp.documentosId.includes(targetDoc.id)) sp.documentosId.push(targetDoc.id);
+        }
+    }
+
+    targetDoc.versao = versao;
+    targetDoc.dataRevisao = dtRev;
+    targetDoc.tipo = tipo;
+    targetDoc.donos = [...i12State.donos];
+
+    if (actionType === 'rascunho') {
+        targetDoc.status = 'Rascunho';
+        alert('Guardado como Rascunho com sucesso!');
+        navigateTo('I18');
+    } else {
+        targetDoc.status = 'Publicado';
+        mockData.documentos.forEach(x => {
+            if (x.codigo === targetDoc.codigo && x.id !== targetDoc.id && x.status === 'Publicado') {
+                x.status = 'Inativo';
+            }
+        });
+        alert('Publicado com sucesso! A versão ativada encontra-se agora disponível.');
+        navigateTo('I9');
+    }
+};
+
 function renderI12RevisaoDocumento() {
     const doc = getItemById(currentState.contextId);
+    if(!doc) return 'Documento não encontrado. <button onclick="navigateTo(\'I9\')">Voltar</button>';
+
+    if (i12State.initializedForContext !== currentState.contextId) {
+        i12State.donos = [...doc.donos];
+        i12State.initializedForContext = currentState.contextId;
+    }
+
+    let assocLabel = '';
+    mockData.processos.forEach(p => { if(p.documentosId && p.documentosId.includes(doc.id)) assocLabel = p.codigo + ' - ' + p.nome; });
+    mockData.subProcessos.forEach(sp => { if(sp.documentosId && sp.documentosId.includes(doc.id)) assocLabel = sp.codigo + ' - ' + sp.nome; });
+
     let html = `<h1 class="text-3xl font-bold mb-4">[I12] Edição de Documento</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Processo/Sub processo Associado (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="P1-V2 (Mock)" readonly></div>
+            <div><label class="block font-bold">Processo Associado (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${assocLabel}" readonly></div>
             <div><label class="block font-bold">Código (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${doc.codigo}" readonly></div>
             <div><label class="block font-bold">Designação (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${doc.designacao}" readonly></div>
-            <div><label class="block font-bold">Data de Elaboração (Imutável)</label><input type="date" class="border p-2 w-full bg-gray-100" value="${doc.dataElaboracao}" readonly></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full" value="${doc.versao}"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full" value="${doc.dataRevisao}"></div>
-            <div><label class="block font-bold">Tipo</label><select class="border p-2 w-full"><option selected>${doc.tipo}</option><option>Instrumento</option><option>Regulamento</option></select></div>
-            <div><label class="block font-bold">Upload Novo Ficheiro</label><input type="file" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Download Atual</label><button class="bg-blue-600 text-white px-3 py-1 mt-2 rounded">Download</button></div>
+            <div><label class="block font-bold">Data de Elaboração (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${doc.dataElaboracao}" readonly></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i12-versao" class="border p-2 w-full" value="${doc.versao}"></div>
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i12-dt-rev" class="border p-2 w-full" value="${doc.dataRevisao}"></div>
+            <div><label class="block font-bold">Tipo</label>
+                <select id="i12-tipo" class="border p-2 w-full">
+                    <option ${doc.tipo === 'Instrumento' ? 'selected' : ''}>Instrumento</option>
+                    <option ${doc.tipo === 'Regulamento' ? 'selected' : ''}>Regulamento</option>
+                    <option ${doc.tipo === 'Orientação' ? 'selected' : ''}>Orientação</option>
+                    <option ${doc.tipo === 'Impresso' ? 'selected' : ''}>Impresso</option>
+                </select>
+            </div>
+            <div><label class="block font-bold">Upload de Ficheiro</label><input type="file" id="i12-file" class="border p-2 w-full"></div>
+        </div>
+        <div class="mb-4">
+            <button class="text-blue-600 underline">Download (Mock)</button>
         </div>
         <div class="mb-4">
             <h2 class="font-bold text-lg mb-2">Tabela de Donos do Documento</h2>
             <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
+                <input type="text" id="i12-email-dono" placeholder="Email do dono" class="border p-2 flex-grow">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" onclick="i12AddDono()">Adicionar</button>
             </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
+            i12State.donos.forEach(d => {
+                html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600" onclick="i12RemoveDono('${d.email}')">Remover</button></td></tr>`;
+            });
+    html += `</tbody></table>
         </div>
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumento('rascunho', '${doc.id}')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumento('publicar', '${doc.id}')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I11', '${doc.id}')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumentoExistente('rascunho', '${doc.id}')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumentoExistente('publicar', '${doc.id}')">Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I9')">Voltar</button>
         </div>
     </div>`;
     return html;
