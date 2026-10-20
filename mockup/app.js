@@ -174,6 +174,23 @@ function getItemById(id) {
 // Ao clicar em "Desativar" num Processo ativo, a função percorre os dados e altera o estado
 // para "Inativo" desse Processo, de todos os seus Documentos, de todos os seus Sub processos
 // e dos Documentos desses Sub processos.
+
+function publicarProcesso(id) {
+    const p = mockData.processos.find(x => x.id === id);
+    if (!p) return;
+
+    // Desativar todos os outros do mesmo código
+    mockData.processos.forEach(x => {
+        if (x.codigo === p.codigo && x.id !== p.id && x.status === 'Publicado') {
+            x.status = 'Inativo';
+        }
+    });
+
+    p.status = 'Publicado';
+    alert('Versão publicada com sucesso!');
+    render();
+}
+
 function desativarProcesso(processId) {
     const processo = mockData.processos.find(x => x.id === processId);
     if (!processo || processo.status !== 'Publicado') return;
@@ -964,7 +981,7 @@ function renderI3DetalheProcessoAtivo() {
 
     let html = `<div class="mb-4 flex justify-between items-center">
                     <h1 class="text-3xl font-bold">[I3] Detalhe de Processo (Ativo)</h1>
-                    <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoProcesso('${p.id}')">Editar</button>
+                    <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoProcesso('${p.id}')">Edição</button>
                 </div>`;
 
     html += `
@@ -974,9 +991,9 @@ function renderI3DetalheProcessoAtivo() {
             <div><strong>Objetivo:</strong> ${p.objetivo}</div>
             <div><strong>Âmbito:</strong> ${p.ambito}</div>
             <div><strong>Data de Elaboração:</strong> ${p.dataElaboracao}</div>
-            <div><strong>Data de Edição:</strong> ${p.dataRevisao}</div>
+            <div><strong>Data de revisão da versão:</strong> ${p.dataRevisao}</div>
             <div><strong>Versão:</strong> ${p.versao}</div>
-            <div><strong>Status:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></div>
+            <div><strong>Estado:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></div>
         </div>
     `;
 
@@ -986,45 +1003,57 @@ function renderI3DetalheProcessoAtivo() {
     html += `</tbody></table>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela com a lista de sub processos</h2>`;
-    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Sub Processo</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Elaboração</th><th class="border px-4 py-2">Ação</th></tr></thead><tbody>`;
+    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código do sub processo</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de elaboração</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
     p.subProcessosId.forEach(spId => {
         const sp = getItemById(spId);
-        if(sp) html += `<tr><td class="border px-4 py-2">${sp.codigo} - ${sp.nome}</td><td class="border px-4 py-2">${sp.versao}</td><td class="border px-4 py-2">${sp.dataElaboracao}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">Editar</button></td></tr>`;
+        if(sp) html += `<tr><td class="border px-4 py-2">${sp.codigo}</td><td class="border px-4 py-2">${sp.nome}</td><td class="border px-4 py-2">${sp.versao}</td><td class="border px-4 py-2">${sp.dataElaboracao}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">Edição</button></td></tr>`;
     });
     html += `</tbody></table>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela com a lista de documentos</h2>`;
-    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Documento</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Elaboração</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ação</th></tr></thead><tbody>`;
+    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código do documento</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de elaboração</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
     p.documentosId.forEach(docId => {
         const doc = getItemById(docId);
-        if(doc) html += `<tr><td class="border px-4 py-2">${doc.codigo} - ${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.dataElaboracao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${doc.id}')">Editar</button></td></tr>`;
+        if(doc) html += `<tr><td class="border px-4 py-2">${doc.codigo}</td><td class="border px-4 py-2">${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.dataElaboracao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${doc.id}')">Edição</button></td></tr>`;
     });
     html += `</tbody></table>`;
 
     // History Table
-    const historico = mockData.processos.filter(x => x.codigo === p.codigo && x.status === 'Inativo');
+    const historico = mockData.processos.filter(x => x.codigo === p.codigo && x.id !== p.id); // All other versions
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Histórico de Versões</h2>`;
     if(historico.length > 0) {
-        html += `<table class="min-w-full bg-white border">
+        html += `<table class="min-w-full bg-white border mb-6">
                     <thead class="bg-gray-200">
-                        <tr><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Edição</th><th class="border px-4 py-2">Ação</th></tr>
+                        <tr><th class="border px-4 py-2">Código do processo</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data de revisão da versão</th><th class="border px-4 py-2">Estado</th><th class="border px-4 py-2">Ações</th></tr>
                     </thead>
                     <tbody>`;
+        // Sort descending by dataRevisao
+        historico.sort((a,b) => new Date(b.dataRevisao) - new Date(a.dataRevisao));
         historico.forEach(h => {
             html += `<tr class="historical-row">
+                        <td class="border px-4 py-2">${h.codigo}</td>
+                        <td class="border px-4 py-2">${h.nome}</td>
                         <td class="border px-4 py-2">${h.versao}</td>
                         <td class="border px-4 py-2">${h.dataRevisao}</td>
-                        <td class="border px-4 py-2">
+                        <td class="border px-4 py-2">${h.status}</td>
+                        <td class="border px-4 py-2 flex flex-wrap gap-2">
                             <button class="bg-gray-500 text-white px-3 py-1 rounded" onclick="navigateTo('I13', '${h.id}')">Detalhe Histórico</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I4', '${h.id}')">Edição</button>
+                            ${h.status !== 'Publicado' ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="publicarProcesso('${h.id}')">Publicar</button>` : ''}
                         </td>
                      </tr>`;
         });
         html += `</tbody></table>`;
     } else {
-        html += `<p class="text-gray-500">Nenhum histórico disponível.</p>`;
+        html += `<p class="text-gray-500 mb-6">Nenhum histórico disponível.</p>`;
     }
 
-    html += `<br><button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>`;
+    html += `<div class="flex gap-2">
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="novaRevisaoProcesso('${p.id}')">Edição</button>
+                <button class="bg-gray-600 text-white px-4 py-2 rounded" onclick="desativarProcesso('${p.id}')">Desativar</button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
+                <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>
+             </div>`;
     return html;
 }
 
