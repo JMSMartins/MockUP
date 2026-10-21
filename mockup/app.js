@@ -621,21 +621,25 @@ function renderI2CriacaoProcesso() {
     let html = `<h1 class="text-3xl font-bold mb-4">[I2] Criação de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
+            <div><label class="block font-bold">Upload Logo</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Upload Banner</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Label de Registo</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Nome</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Objetivo</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Âmbito</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Donos do Processo</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
-        </div>
-        <div class="mb-4">
-            <h2 class="font-bold text-lg mb-2">Tabela de Donos do Processo</h2>
-            <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
-            </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
+            <div><label class="block font-bold">Riscos Relevantes</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Oportunidades</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Entradas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Saídas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Indicadores de Sucesso</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Partes Interessadas Externas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Partes Interessadas Internas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Referenciais</label><input type="text" class="border p-2 w-full"></div>
         </div>
         <div class="flex gap-2 mt-6">
             <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho')">Guardar como Rascunho</button>
