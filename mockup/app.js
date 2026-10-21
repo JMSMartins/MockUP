@@ -11,6 +11,8 @@ const mockData = {
             dataRevisao: '2026-10-15',
             versao: '2.0',
             status: 'Publicado',
+            idRegisto: 1001,
+            labelRegisto: 'QMS',
             donos: [{ nome: 'João Silva', email: 'joao@empresa.com' }],
             // Active associations
             subProcessosId: ['SP1-V1'],
@@ -26,6 +28,8 @@ const mockData = {
             dataRevisao: '2025-01-10',
             versao: '1.0',
             status: 'Inativo',
+            idRegisto: 1000,
+            labelRegisto: 'QMS',
             donos: [{ nome: 'João Silva', email: 'joao@empresa.com' }],
             // Historical associations (Snapshot of the time)
             subProcessosId: ['SP1-V1'], // Notice SP1-V1 is still the active version today
@@ -41,6 +45,8 @@ const mockData = {
             dataRevisao: '2026-11-01',
             versao: '1.0',
             status: 'Rascunho',
+            idRegisto: 1002,
+            labelRegisto: 'RISK',
             donos: [{ nome: 'Maria Silva', email: 'maria@empresa.com' }],
             subProcessosId: [],
             documentosId: []
@@ -55,6 +61,7 @@ const mockData = {
             dataRevisao: '2026-11-01',
             versao: '1.0',
             status: 'Publicado',
+            idRegisto: 1003,
             donos: [{ nome: 'Teste', email: 'teste@empresa.com' }],
             subProcessosId: [],
             documentosId: []
@@ -293,6 +300,8 @@ function guardarProcesso(actionType, id = null) {
             dataElaboracao: '2026-11-01',
             dataRevisao: '2026-11-01',
             versao: '1.0',
+            idRegisto: Math.floor(Math.random() * 10000), // Mock sequential ID
+            labelRegisto: 'NEW', // Optional label
             donos: [{ nome: 'User', email: 'user@empresa.com' }],
             subProcessosId: [],
             documentosId: []
@@ -585,32 +594,53 @@ function renderI1ListaProcessos() {
 
     html += `<div class="mb-4 flex gap-2">
                 <input type="text" placeholder="Pesquisa (Código, Nome, Objetivo, Âmbito)" class="border p-2 rounded w-1/3">
+                <select class="border p-2 rounded">
+                    <option value="">Todos os Estados</option>
+                    <option value="Publicado">Publicado</option>
+                    <option value="Rascunho">Rascunho</option>
+                    <option value="Inativo">Inativo</option>
+                </select>
                 <button class="bg-blue-600 text-white px-4 py-2 rounded">Pesquisar</button>
              </div>`;
 
     html += `<table class="min-w-full bg-white border">
                 <thead class="bg-gray-200">
-                    <tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Status</th><th class="border px-4 py-2">Ações</th></tr>
+                    <tr>
+                        <th class="border px-4 py-2">Código do processo</th>
+                        <th class="border px-4 py-2">Nome</th>
+                        <th class="border px-4 py-2">Versão</th>
+                        <th class="border px-4 py-2">Data de elaboração</th>
+                        <th class="border px-4 py-2">Estado</th>
+                        <th class="border px-4 py-2">Registo</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
                 </thead>
                 <tbody>`;
 
-    // Só mostrar Ativos / Publicados
+    // Mostrar todos os processos conforme os critérios de pesquisa
     mockData.processos.forEach(p => {
-        if(p.status === 'Publicado') {
-            html += `<tr>
-                <td class="border px-4 py-2">${p.codigo}</td>
-                <td class="border px-4 py-2">${p.nome}</td>
-                <td class="border px-4 py-2">${p.versao}</td>
-                <td class="border px-4 py-2"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></td>
-                <td class="border px-4 py-2">
-                    <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I3', '${p.id}')">Detalhe</button>
-                    <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Editar</button>
-                    <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I5', '${p.id}')">Sub processos</button>
-                    <button class="bg-indigo-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I9', '${p.id}')">Documentos</button>
-                    <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="desativarProcesso('${p.id}')">Desativar</button>
-                </td>
-            </tr>`;
-        }
+        let statusClass = "bg-gray-100 text-gray-800";
+        if (p.status === 'Publicado') statusClass = "bg-green-100 text-green-800";
+        if (p.status === 'Rascunho') statusClass = "bg-yellow-100 text-yellow-800";
+        if (p.status === 'Inativo') statusClass = "bg-red-100 text-red-800";
+
+        const registoTexto = p.labelRegisto ? `${p.labelRegisto} - ${p.idRegisto}` : p.idRegisto;
+
+        html += `<tr>
+            <td class="border px-4 py-2">${p.codigo}</td>
+            <td class="border px-4 py-2">${p.nome}</td>
+            <td class="border px-4 py-2">${p.versao}</td>
+            <td class="border px-4 py-2">${p.dataElaboracao}</td>
+            <td class="border px-4 py-2"><span class="${statusClass} px-2 py-1 rounded">${p.status}</span></td>
+            <td class="border px-4 py-2">${registoTexto || '-'}</td>
+            <td class="border px-4 py-2">
+                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I3', '${p.id}')">Detalhe</button>
+                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Editar</button>
+                <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I5', '${p.id}')">Sub processos</button>
+                <button class="bg-indigo-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I9', '${p.id}')">Documentos</button>
+                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="desativarProcesso('${p.id}')">Desativar</button>
+            </td>
+        </tr>`;
     });
 
     html += `</tbody></table>`;
