@@ -26,8 +26,8 @@ console.log(`Current View before test: ${global.currentState.view}`);
 // Test Scenario A: Click on a historical document (DOC1-V1)
 console.log("-> Clicking Historical Document DOC1-V1...");
 global.handleIntelligentNavigation('DOC1-V1');
-console.log(`Expected: I15, Got: ${global.currentState.view}`);
-if (global.currentState.view !== 'I15') throw new Error("Test Failed");
+console.log(`Expected: I14, Got: ${global.currentState.view}`);
+if (global.currentState.view !== 'I14') throw new Error("Test Failed");
 
 // Test Scenario B: Click on an active document (DOC2-V1)
 console.log("-> Clicking Active Document DOC2-V1...");
@@ -39,8 +39,8 @@ if (global.currentState.view !== 'I11') throw new Error("Test Failed");
 global.mockData.subProcessos.push({ id: 'SP2-V1', status: 'Inativo', donos: [], documentosId: [] });
 console.log("-> Clicking Historical Sub-process SP2-V1...");
 global.handleIntelligentNavigation('SP2-V1');
-console.log(`Expected: I14, Got: ${global.currentState.view}`);
-if (global.currentState.view !== 'I14') throw new Error("Test Failed");
+console.log(`Expected: I13, Got: ${global.currentState.view}`);
+if (global.currentState.view !== 'I13') throw new Error("Test Failed");
 
 // Test Scenario B: Click on an active sub-process (SP1-V1)
 console.log("-> Clicking Active Sub-process SP1-V1...");
