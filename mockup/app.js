@@ -3,59 +3,72 @@ const mockData = {
     processos: [
         {
             id: 'P1-V2',
+            labelRegisto: 'Versão de Sistema 2',
             codigo: 'PROC-001',
             nome: 'Gestão de Qualidade',
             objetivo: 'Garantir padrões de qualidade',
             ambito: 'Toda a empresa',
             dataElaboracao: '2026-01-10',
-            dataRevisao: '2026-10-15',
+            donos: 'João Silva',
             versao: '2.0',
+            dataRevisao: '2026-10-15',
             status: 'Publicado',
-            donos: [{ nome: 'João Silva', email: 'joao@empresa.com' }],
+            riscosRelevantes: 'Risco de falha de sistema',
+            oportunidades: 'Melhoria de processos internos',
+            entradas: 'Dados de auditoria',
+            saidas: 'Relatórios de qualidade',
+            indicadoresSucesso: 'Taxa de conformidade de 99%',
+            partesInteressadasExternas: 'Fornecedores',
+            partesInteressadasInternas: 'Colaboradores',
+            referenciais: 'ISO 9001',
             // Active associations
             subProcessosId: ['SP1-V1'],
             documentosId: ['DOC1-V2', 'DOC2-V1']
         },
         {
             id: 'P1-V1',
+            labelRegisto: 'Versão de Sistema 1',
             codigo: 'PROC-001',
             nome: 'Gestão de Qualidade',
             objetivo: 'Garantir padrões mínimos de qualidade',
             ambito: 'Toda a empresa',
             dataElaboracao: '2025-01-10',
-            dataRevisao: '2025-01-10',
+            donos: 'João Silva',
             versao: '1.0',
+            dataRevisao: '2025-01-10',
             status: 'Inativo',
-            donos: [{ nome: 'João Silva', email: 'joao@empresa.com' }],
+            riscosRelevantes: 'Risco de falha de sistema',
+            oportunidades: 'Melhoria de processos internos',
+            entradas: 'Dados de auditoria',
+            saidas: 'Relatórios de qualidade',
+            indicadoresSucesso: 'Taxa de conformidade de 95%',
+            partesInteressadasExternas: 'Fornecedores',
+            partesInteressadasInternas: 'Colaboradores',
+            referenciais: 'ISO 9001',
             // Historical associations (Snapshot of the time)
             subProcessosId: ['SP1-V1'], // Notice SP1-V1 is still the active version today
             documentosId: ['DOC1-V1', 'DOC2-V1'] // DOC1-V1 is historical, DOC2-V1 is active
         },
         {
-            id: 'P2-DRAFT',
+            id: 'P2-V1',
+            labelRegisto: 'Versão de Sistema 1',
             codigo: 'PROC-002',
-            nome: 'Gestão de Risco',
-            objetivo: 'Identificar riscos',
-            ambito: 'Toda a empresa',
-            dataElaboracao: '2026-11-01',
-            dataRevisao: '2026-11-01',
+            nome: 'Gestão Financeira',
+            objetivo: 'Controlo financeiro',
+            ambito: 'Dpt Financeiro',
+            dataElaboracao: '2024-05-20',
+            donos: 'Maria Costa',
             versao: '1.0',
+            dataRevisao: '2024-05-20',
             status: 'Rascunho',
-            donos: [{ nome: 'Maria Silva', email: 'maria@empresa.com' }],
-            subProcessosId: [],
-            documentosId: []
-        },
-        {
-            id: 'P3-V1',
-            codigo: 'PROC-003',
-            nome: 'Sem Dependencias',
-            objetivo: 'Teste Eliminacao',
-            ambito: 'RH',
-            dataElaboracao: '2026-11-01',
-            dataRevisao: '2026-11-01',
-            versao: '1.0',
-            status: 'Publicado',
-            donos: [{ nome: 'Teste', email: 'teste@empresa.com' }],
+            riscosRelevantes: 'Perda de dados financeiros',
+            oportunidades: 'Otimização de custos',
+            entradas: 'Faturas, recibos',
+            saidas: 'Balanços',
+            indicadoresSucesso: 'Redução de custos em 10%',
+            partesInteressadasExternas: 'Bancos, Finanças',
+            partesInteressadasInternas: 'Gestão de Topo',
+            referenciais: 'Normas Contabilísticas',
             subProcessosId: [],
             documentosId: []
         }
@@ -275,49 +288,7 @@ function eliminarDocumento(docId) {
 
 // --- Lógica de Gravação e Publicação ---
 // "Guardar como Rascunho" e "Guardar e Publicar"
-function guardarProcesso(actionType, id = null) {
-    // Para simplificar o mockup, não lemos todos os campos do DOM, vamos apenas simular
-    // o save de um novo ou existente com o estado correto.
-    let processo = mockData.processos.find(x => x.id === id);
-    let isNew = false;
 
-    if (!processo) {
-        // Mock de Criação
-        isNew = true;
-        processo = {
-            id: 'P' + Date.now(),
-            codigo: 'PROC-MOCK-' + Date.now().toString().slice(-4),
-            nome: 'Processo Mockado ' + Date.now().toString().slice(-4),
-            objetivo: 'Objetivo mockado',
-            ambito: 'Âmbito mockado',
-            dataElaboracao: '2026-11-01',
-            dataRevisao: '2026-11-01',
-            versao: '1.0',
-            donos: [{ nome: 'User', email: 'user@empresa.com' }],
-            subProcessosId: [],
-            documentosId: []
-        };
-        mockData.processos.push(processo);
-    }
-
-    if (actionType === 'rascunho') {
-        processo.status = 'Rascunho';
-        alert('Guardado como Rascunho com sucesso! Este registo está agora disponível apenas nas listas de Rascunho (ex: I16).');
-        navigateTo('I16');
-    } else if (actionType === 'publicar') {
-        processo.status = 'Publicado';
-
-        // Regra de Ouro: Desativar a versão anteriormente ativa do mesmo código
-        mockData.processos.forEach(p => {
-            if (p.codigo === processo.codigo && p.id !== processo.id && p.status === 'Publicado') {
-                p.status = 'Inativo';
-            }
-        });
-
-        alert('Publicado com sucesso! A versão anterior (se existente) foi passada a Inativa.');
-        navigateTo('I1');
-    }
-}
 
 function guardarSubProcesso(actionType, id = null) {
     let sp = mockData.subProcessos.find(x => x.id === id);
@@ -342,7 +313,7 @@ function guardarSubProcesso(actionType, id = null) {
     if (actionType === 'rascunho') {
         sp.status = 'Rascunho';
         alert('Guardado como Rascunho com sucesso!');
-        navigateTo('I17');
+        navigateTo('I1');
     } else if (actionType === 'publicar') {
         sp.status = 'Publicado';
 
@@ -377,7 +348,7 @@ function guardarDocumento(actionType, id = null) {
     if (actionType === 'rascunho') {
         doc.status = 'Rascunho';
         alert('Guardado como Rascunho com sucesso!');
-        navigateTo('I18');
+        navigateTo('I1');
     } else if (actionType === 'publicar') {
         doc.status = 'Publicado';
 
@@ -393,7 +364,7 @@ function guardarDocumento(actionType, id = null) {
 }
 
 // Action "Editar"
-function novaRevisaoProcesso(processId) {
+function novaEdicaoProcesso(processId) {
     const pIndex = mockData.processos.findIndex(x => x.id === processId);
     if (pIndex === -1) return;
 
@@ -492,15 +463,9 @@ function render() {
         case 'I15':
             app.innerHTML = renderI15DetalheHistoricoDocumento();
             break;
-        case 'I16':
-            app.innerHTML = renderI16ListaRascunhosProcessos();
-            break;
-        case 'I17':
-            app.innerHTML = renderI17ListaRascunhosSubProcessos();
-            break;
-        case 'I18':
-            app.innerHTML = renderI18ListaRascunhosDocumentos();
-            break;
+
+
+
         default:
             app.innerHTML = `<div><h1>404 Not Found</h1><button onclick="navigateTo('I1')">Go Home</button></div>`;
     }
@@ -510,72 +475,20 @@ function render() {
 // RENDERERS
 // ==========================================
 
-function renderI16ListaRascunhosProcessos() {
-    let html = `<div class="flex justify-between items-center mb-4">
-                    <h1 class="text-3xl font-bold">[I16] Lista de Processos em Rascunho</h1>
-                </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.processos.filter(p => p.status === 'Rascunho').forEach(p => {
-        html += `<tr>
-            <td class="border px-4 py-2">${p.codigo}</td>
-            <td class="border px-4 py-2">${p.nome}</td>
-            <td class="border px-4 py-2">${p.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I13', '${p.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
-            </td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-    return html;
-}
 
-function renderI17ListaRascunhosSubProcessos() {
-    let html = `<div class="flex justify-between items-center mb-4">
-                    <h1 class="text-3xl font-bold">[I17] Lista de Sub processos em Rascunho</h1>
-                </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código Pai</th><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.subProcessos.filter(sp => sp.status === 'Rascunho').forEach(sp => {
-        html += `<tr>
-            <td class="border px-4 py-2">${sp.processoPaiId}</td>
-            <td class="border px-4 py-2">${sp.codigo}</td>
-            <td class="border px-4 py-2">${sp.nome}</td>
-            <td class="border px-4 py-2">${sp.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I14', '${sp.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
-            </td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-    return html;
-}
 
-function renderI18ListaRascunhosDocumentos() {
-    let html = `<div class="flex justify-between items-center mb-4">
-                    <h1 class="text-3xl font-bold">[I18] Lista de Documentos em Rascunho</h1>
-                </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
 
-    mockData.documentos.filter(doc => doc.status === 'Rascunho').forEach(doc => {
-        html += `<tr>
-            <td class="border px-4 py-2">${doc.codigo}</td>
-            <td class="border px-4 py-2">${doc.designacao}</td>
-            <td class="border px-4 py-2">${doc.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I15', '${doc.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
-            </td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-    return html;
-}
+
+
+let currentSortColumn = null;
+let currentSortOrder = 'asc';
+let currentPage = 1;
+const itemsPerPage = 20;
+
+
+
 
 function renderI1ListaProcessos() {
     let html = `<div class="flex justify-between items-center mb-4">
@@ -583,101 +496,355 @@ function renderI1ListaProcessos() {
                     <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I2')">Adicionar Processo</button>
                 </div>`;
 
-    html += `<div class="mb-4 flex gap-2">
-                <input type="text" placeholder="Pesquisa (Código, Nome, Objetivo, Âmbito)" class="border p-2 rounded w-1/3">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Pesquisar</button>
+    html += `<div class="mb-4 bg-white p-4 rounded shadow">
+                <div class="flex gap-2 mb-4">
+                    <input type="text" id="pesquisaProc" placeholder="Pesquisar..." class="border p-2 rounded w-full" value="${currentState.searchQuery || ''}">
+                    <button class="bg-blue-600 text-white px-4 py-2 rounded flex-shrink-0" onclick="performSearch()">Pesquisar</button>
+                </div>
+                <div class="flex gap-4 items-center">
+                    <span class="font-bold">Estado:</span>
+                    <label><input type="checkbox" id="chkRascunho" ${currentState.filters && currentState.filters.includes('Rascunho') ? 'checked' : ''}> Rascunho</label>
+                    <label><input type="checkbox" id="chkPublicado" ${currentState.filters && currentState.filters.includes('Publicado') ? 'checked' : ''}> Publicado</label>
+                    <label><input type="checkbox" id="chkInativo" ${currentState.filters && currentState.filters.includes('Inativo') ? 'checked' : ''}> Inativo</label>
+                </div>
              </div>`;
 
     html += `<table class="min-w-full bg-white border">
                 <thead class="bg-gray-200">
-                    <tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Status</th><th class="border px-4 py-2">Ações</th></tr>
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="sortBy('codigo')">Código</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="sortBy('nome')">Nome</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="sortBy('versao')">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="sortBy('dataElaboracao')">Data de elaboração</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300" onclick="sortBy('status')">Estado</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
                 </thead>
                 <tbody>`;
 
-    // Só mostrar Ativos / Publicados
-    mockData.processos.forEach(p => {
-        if(p.status === 'Publicado') {
-            html += `<tr>
-                <td class="border px-4 py-2">${p.codigo}</td>
-                <td class="border px-4 py-2">${p.nome}</td>
-                <td class="border px-4 py-2">${p.versao}</td>
-                <td class="border px-4 py-2"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></td>
-                <td class="border px-4 py-2">
-                    <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I3', '${p.id}')">Detalhe</button>
-                    <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Editar</button>
-                    <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I5', '${p.id}')">Sub processos</button>
-                    <button class="bg-indigo-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I9', '${p.id}')">Documentos</button>
-                    <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="desativarProcesso('${p.id}')">Desativar</button>
-                </td>
-            </tr>`;
-        }
+    let filteredProcessos = mockData.processos;
+
+    // Apply text search
+    if (currentState.searchQuery) {
+        const q = currentState.searchQuery.toLowerCase();
+        filteredProcessos = filteredProcessos.filter(p =>
+            (p.codigo && p.codigo.toLowerCase().includes(q)) ||
+            (p.nome && p.nome.toLowerCase().includes(q)) ||
+            (p.objetivo && p.objetivo.toLowerCase().includes(q)) ||
+            (p.ambito && p.ambito.toLowerCase().includes(q))
+        );
+    }
+
+    // Apply state filters
+    let activeFilters = currentState.filters || [];
+    if (activeFilters.length === 0) {
+        // Por omissão devolve a totalidade
+        activeFilters = ['Rascunho', 'Publicado', 'Inativo'];
+    }
+    filteredProcessos = filteredProcessos.filter(p => activeFilters.includes(p.status));
+
+    // Sort logic
+    if (currentSortColumn) {
+        filteredProcessos.sort((a, b) => {
+            let valA = a[currentSortColumn] || '';
+            let valB = b[currentSortColumn] || '';
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+            if (valA < valB) return currentSortOrder === 'asc' ? -1 : 1;
+            if (valA > valB) return currentSortOrder === 'asc' ? 1 : -1;
+            return 0;
+        });
+    } else {
+        // Default sort: Código -> Nome -> Objetivo -> Âmbito -> Estado (Alfabético)
+        filteredProcessos.sort((a, b) => {
+            if ((a.codigo || '') !== (b.codigo || '')) return (a.codigo || '').localeCompare(b.codigo || '');
+            if ((a.nome || '') !== (b.nome || '')) return (a.nome || '').localeCompare(b.nome || '');
+            if ((a.objetivo || '') !== (b.objetivo || '')) return (a.objetivo || '').localeCompare(b.objetivo || '');
+            if ((a.ambito || '') !== (b.ambito || '')) return (a.ambito || '').localeCompare(b.ambito || '');
+            return (a.status || '').localeCompare(b.status || '');
+        });
+    }
+
+    // Pagination
+    const totalPages = Math.ceil(filteredProcessos.length / itemsPerPage) || 1;
+    if (currentPage > totalPages) currentPage = totalPages;
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const paginatedProcessos = filteredProcessos.slice(startIndex, startIndex + itemsPerPage);
+
+    paginatedProcessos.forEach(p => {
+        let statusBadge = 'bg-gray-100 text-gray-800';
+        if (p.status === 'Publicado') statusBadge = 'bg-green-100 text-green-800';
+        if (p.status === 'Rascunho') statusBadge = 'bg-orange-100 text-orange-800';
+        if (p.status === 'Inativo') statusBadge = 'bg-red-100 text-red-800';
+
+        html += `<tr>
+            <td class="border px-4 py-2">${p.codigo}</td>
+            <td class="border px-4 py-2">${p.nome}</td>
+            <td class="border px-4 py-2">${p.versao}</td>
+            <td class="border px-4 py-2">${p.dataElaboracao}</td>
+            <td class="border px-4 py-2"><span class="${statusBadge} px-2 py-1 rounded">${p.status}</span></td>
+            <td class="border px-4 py-2 flex flex-wrap gap-2">
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded" onclick="navigateTo('I3', '${p.id}')">Detalhe</button>
+                <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded" onclick="navigateTo('I4', '${p.id}')">Edição</button>
+                <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-3 py-1 rounded" onclick="navigateTo('I5', '${p.id}')">Sub processos</button>
+                <button class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded" onclick="navigateTo('I9', '${p.id}')">Documentos</button>
+                <button class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded" onclick="desativarProcesso('${p.id}')">Desativar</button>
+                <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
+            </td>
+        </tr>`;
     });
 
+    if (paginatedProcessos.length === 0) {
+        html += `<tr><td colspan="6" class="border px-4 py-4 text-center text-gray-500">Nenhum processo encontrado.</td></tr>`;
+    }
+
     html += `</tbody></table>`;
+
+    // Pagination Controls
+    html += `<div class="flex justify-between items-center mt-4">
+                <div>Página ${currentPage} de ${totalPages}</div>
+                <div class="flex gap-2">
+                    <button class="bg-gray-300 px-3 py-1 rounded ${currentPage === 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-400'}" onclick="${currentPage > 1 ? 'changePage(' + (currentPage - 1) + ')' : ''}">Anterior</button>
+                    <button class="bg-gray-300 px-3 py-1 rounded ${currentPage === totalPages ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-400'}" onclick="${currentPage < totalPages ? 'changePage(' + (currentPage + 1) + ')' : ''}">Próximo</button>
+                </div>
+             </div>`;
+
     return html;
 }
+
+function performSearch() {
+    const q = document.getElementById('pesquisaProc').value;
+    const filters = [];
+    if (document.getElementById('chkRascunho').checked) filters.push('Rascunho');
+    if (document.getElementById('chkPublicado').checked) filters.push('Publicado');
+    if (document.getElementById('chkInativo').checked) filters.push('Inativo');
+
+    currentState.searchQuery = q;
+    currentState.filters = filters.length > 0 ? filters : null;
+    currentPage = 1;
+    render();
+}
+
+function sortBy(column) {
+    if (currentSortColumn === column) {
+        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortColumn = column;
+        currentSortOrder = 'asc';
+    }
+    render();
+}
+
+function changePage(page) {
+    currentPage = page;
+    render();
+}
+
+
+function performSearch() {
+    const q = document.getElementById('pesquisaProc').value;
+    const filters = [];
+    if (document.getElementById('chkRascunho').checked) filters.push('Rascunho');
+    if (document.getElementById('chkPublicado').checked) filters.push('Publicado');
+    if (document.getElementById('chkInativo').checked) filters.push('Inativo');
+
+    currentState.searchQuery = q;
+    currentState.filters = filters.length > 0 ? filters : null;
+    currentPage = 1;
+    render();
+}
+
+function sortBy(column) {
+    if (currentSortColumn === column) {
+        currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSortColumn = column;
+        currentSortOrder = 'asc';
+    }
+    render();
+}
+
+function changePage(page) {
+    currentPage = page;
+    render();
+}
+
+
+
 
 function renderI2CriacaoProcesso() {
     let html = `<h1 class="text-3xl font-bold mb-4">[I2] Criação de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Nome</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Objetivo</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Âmbito</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Label de Registo</label><input type="text" id="i2_labelRegisto" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Código</label><input type="text" id="i2_codigo" class="border p-2 w-full"></div>
+
+            <div><label class="block font-bold">Nome</label><input type="text" id="i2_nome" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Objetivo</label><input type="text" id="i2_objetivo" class="border p-2 w-full"></div>
+
+            <div><label class="block font-bold">Âmbito</label><input type="text" id="i2_ambito" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i2_dataElaboracao" class="border p-2 w-full"></div>
+
+            <div><label class="block font-bold">Donos do Processo</label><input type="text" id="i2_donos" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i2_versao" class="border p-2 w-full"></div>
+
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i2_dataRevisao" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Riscos Relevantes</label><input type="text" id="i2_riscosRelevantes" class="border p-2 w-full"></div>
+
+            <div><label class="block font-bold">Oportunidades</label><input type="text" id="i2_oportunidades" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Entradas</label><input type="text" id="i2_entradas" class="border p-2 w-full"></div>
+
+            <div><label class="block font-bold">Saídas</label><input type="text" id="i2_saidas" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Indicadores de Sucesso</label><input type="text" id="i2_indicadoresSucesso" class="border p-2 w-full"></div>
+
+            <div><label class="block font-bold">Partes Interessadas Externas</label><input type="text" id="i2_partesInteressadasExternas" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">Partes Interessadas Internas</label><input type="text" id="i2_partesInteressadasInternas" class="border p-2 w-full"></div>
+
+            <div class="col-span-2"><label class="block font-bold">Referenciais</label><input type="text" id="i2_referenciais" class="border p-2 w-full"></div>
         </div>
-        <div class="mb-4">
-            <h2 class="font-bold text-lg mb-2">Tabela de Donos do Processo</h2>
-            <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
-            </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody><tr><td class="p-2 border">Atual Utilizador</td><td class="p-2 border">user@empresa.com</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr></tbody></table>
-        </div>
+
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcesso('publicar')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>
+            <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded" onclick="guardarProcessoI2('Rascunho')">Guardar como Rascunho</button>
+            <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded" onclick="guardarProcessoI2('Publicado')">Guardar e Publicar</button>
+            <button class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>
         </div>
     </div>`;
     return html;
 }
+
+function guardarProcessoI2(status) {
+    const cod = document.getElementById('i2_codigo').value.trim();
+    if(status === 'Publicado' && !cod) {
+        alert('Código é obrigatório.');
+        return;
+    }
+
+    // Verificacao de codigo unico para processos ativos
+    if(status === 'Publicado' && mockData.processos.find(p => p.codigo === cod && p.status === 'Publicado')) {
+        alert('Erro: Já existe um processo ativo com este código.');
+        return;
+    }
+
+    const novoProcesso = {
+        id: 'P' + Date.now(),
+        labelRegisto: document.getElementById('i2_labelRegisto').value,
+        codigo: cod,
+        nome: document.getElementById('i2_nome').value,
+        objetivo: document.getElementById('i2_objetivo').value,
+        ambito: document.getElementById('i2_ambito').value,
+        dataElaboracao: document.getElementById('i2_dataElaboracao').value,
+        donos: document.getElementById('i2_donos').value,
+        versao: document.getElementById('i2_versao').value,
+        dataRevisao: document.getElementById('i2_dataRevisao').value,
+        status: status,
+        riscosRelevantes: document.getElementById('i2_riscosRelevantes').value,
+        oportunidades: document.getElementById('i2_oportunidades').value,
+        entradas: document.getElementById('i2_entradas').value,
+        saidas: document.getElementById('i2_saidas').value,
+        indicadoresSucesso: document.getElementById('i2_indicadoresSucesso').value,
+        partesInteressadasExternas: document.getElementById('i2_partesInteressadasExternas').value,
+        partesInteressadasInternas: document.getElementById('i2_partesInteressadasInternas').value,
+        referenciais: document.getElementById('i2_referenciais').value,
+        subProcessosId: [],
+        documentosId: []
+    };
+
+    mockData.processos.push(novoProcesso);
+
+    alert('Processo guardado com sucesso.');
+    navigateTo('I1');
+}
+
+
+function guardarProcessoI2(status) {
+    const cod = document.getElementById('i2_codigo').value.trim();
+    if(status === 'Publicado' && !cod) {
+        alert('Código é obrigatório.');
+        return;
+    }
+
+    // Verificacao de codigo unico para processos ativos
+    if(status === 'Publicado' && mockData.processos.find(p => p.codigo === cod && p.status === 'Publicado')) {
+        alert('Erro: Já existe um processo ativo com este código.');
+        return;
+    }
+
+    const novoProcesso = {
+        id: 'P' + Date.now(),
+        labelRegisto: document.getElementById('i2_labelRegisto').value,
+        codigo: cod,
+        nome: document.getElementById('i2_nome').value,
+        objetivo: document.getElementById('i2_objetivo').value,
+        ambito: document.getElementById('i2_ambito').value,
+        dataElaboracao: document.getElementById('i2_dataElaboracao').value,
+        donos: document.getElementById('i2_donos').value,
+        versao: document.getElementById('i2_versao').value,
+        dataRevisao: document.getElementById('i2_dataRevisao').value,
+        status: status,
+        riscosRelevantes: document.getElementById('i2_riscosRelevantes').value,
+        oportunidades: document.getElementById('i2_oportunidades').value,
+        entradas: document.getElementById('i2_entradas').value,
+        saidas: document.getElementById('i2_saidas').value,
+        indicadoresSucesso: document.getElementById('i2_indicadoresSucesso').value,
+        partesInteressadasExternas: document.getElementById('i2_partesInteressadasExternas').value,
+        partesInteressadasInternas: document.getElementById('i2_partesInteressadasInternas').value,
+        referenciais: document.getElementById('i2_referenciais').value,
+        subProcessosId: [],
+        documentosId: []
+    };
+
+    mockData.processos.push(novoProcesso);
+
+    alert('Processo guardado com sucesso.');
+    navigateTo('I1');
+}
+
+
+
 
 function renderI3DetalheProcessoAtivo() {
     const p = getItemById(currentState.contextId);
     if(!p) return `Processo não encontrado. <button onclick="navigateTo('I1')">Voltar</button>`;
 
     let html = `<div class="mb-4 flex justify-between items-center">
-                    <h1 class="text-3xl font-bold">[I3] Detalhe de Processo (Ativo)</h1>
-                    <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onclick="novaRevisaoProcesso('${p.id}')">Editar</button>
+                    <h1 class="text-3xl font-bold">[I3] Detalhe de Processo (${p.status})</h1>
+                    <div class="space-x-2">
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I6', '${p.id}')">Adicionar sub processo</button>
+                        <button class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10', '${p.id}')">Adicionar documentos</button>
+                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I4', '${p.id}')">Editar</button>
+                        <button class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded shadow" onclick="desativarProcesso('${p.id}')">Desativar</button>
+                        <button class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded shadow" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
+                    </div>
                 </div>`;
 
     html += `
-        <div class="grid grid-cols-2 gap-4 mb-6">
-            <div><strong>Código:</strong> ${p.codigo}</div>
-            <div><strong>Nome:</strong> ${p.nome}</div>
-            <div><strong>Objetivo:</strong> ${p.objetivo}</div>
-            <div><strong>Âmbito:</strong> ${p.ambito}</div>
-            <div><strong>Data de Elaboração:</strong> ${p.dataElaboracao}</div>
-            <div><strong>Data de Edição:</strong> ${p.dataRevisao}</div>
-            <div><strong>Versão:</strong> ${p.versao}</div>
-            <div><strong>Status:</strong> <span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></div>
+        <div class="grid grid-cols-2 gap-4 mb-6 bg-white p-4 border rounded">
+            <div><strong>Label de Registo:</strong> ${p.labelRegisto || ''}</div>
+            <div><strong>Código:</strong> ${p.codigo || ''}</div>
+            <div><strong>Nome:</strong> ${p.nome || ''}</div>
+            <div><strong>Objetivo:</strong> ${p.objetivo || ''}</div>
+            <div><strong>Âmbito:</strong> ${p.ambito || ''}</div>
+            <div><strong>Data de Elaboração:</strong> ${p.dataElaboracao || ''}</div>
+            <div><strong>Donos do Processo:</strong> ${p.donos || ''}</div>
+            <div><strong>Versão:</strong> ${p.versao || ''}</div>
+            <div><strong>Data de revisão da versão:</strong> ${p.dataRevisao || ''}</div>
+            <div><strong>Estado:</strong> <span class="px-2 py-1 rounded ${p.status === 'Publicado' ? 'bg-green-100 text-green-800' : (p.status === 'Rascunho' ? 'bg-orange-100 text-orange-800' : 'bg-red-100 text-red-800')}">${p.status}</span></div>
+            <div><strong>Riscos Relevantes:</strong> ${p.riscosRelevantes || ''}</div>
+            <div><strong>Oportunidades:</strong> ${p.oportunidades || ''}</div>
+            <div><strong>Entradas:</strong> ${p.entradas || ''}</div>
+            <div><strong>Saídas:</strong> ${p.saidas || ''}</div>
+            <div><strong>Indicadores de Sucesso:</strong> ${p.indicadoresSucesso || ''}</div>
+            <div><strong>Partes Interessadas Externas:</strong> ${p.partesInteressadasExternas || ''}</div>
+            <div><strong>Partes Interessadas Internas:</strong> ${p.partesInteressadasInternas || ''}</div>
+            <div><strong>Referenciais:</strong> ${p.referenciais || ''}</div>
         </div>
     `;
-
-    html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Donos do Processo</h2>`;
-    html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Email</th></tr></thead><tbody>`;
-    p.donos.forEach(d => html += `<tr><td class="border px-4 py-2">${d.nome}</td><td class="border px-4 py-2">${d.email}</td></tr>`);
-    html += `</tbody></table>`;
 
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela com a lista de sub processos</h2>`;
     html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Sub Processo</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Elaboração</th><th class="border px-4 py-2">Ação</th></tr></thead><tbody>`;
     p.subProcessosId.forEach(spId => {
         const sp = getItemById(spId);
-        if(sp) html += `<tr><td class="border px-4 py-2">${sp.codigo} - ${sp.nome}</td><td class="border px-4 py-2">${sp.versao}</td><td class="border px-4 py-2">${sp.dataElaboracao}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">Editar</button></td></tr>`;
+        if(sp && sp.status === 'Publicado') html += `<tr><td class="border px-4 py-2">${sp.codigo} - ${sp.nome}</td><td class="border px-4 py-2">${sp.versao}</td><td class="border px-4 py-2">${sp.dataElaboracao}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">Editar</button></td></tr>`;
     });
     html += `</tbody></table>`;
 
@@ -685,25 +852,30 @@ function renderI3DetalheProcessoAtivo() {
     html += `<table class="min-w-full bg-white border mb-6"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Documento</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Elaboração</th><th class="border px-4 py-2">Tipo</th><th class="border px-4 py-2">Ação</th></tr></thead><tbody>`;
     p.documentosId.forEach(docId => {
         const doc = getItemById(docId);
-        if(doc) html += `<tr><td class="border px-4 py-2">${doc.codigo} - ${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.dataElaboracao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${doc.id}')">Editar</button></td></tr>`;
+        if(doc && doc.status === 'Publicado') html += `<tr><td class="border px-4 py-2">${doc.codigo} - ${doc.designacao}</td><td class="border px-4 py-2">${doc.versao}</td><td class="border px-4 py-2">${doc.dataElaboracao}</td><td class="border px-4 py-2">${doc.tipo}</td><td class="border px-4 py-2"><button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button><button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I12', '${doc.id}')">Editar</button></td></tr>`;
     });
     html += `</tbody></table>`;
 
     // History Table
-    const historico = mockData.processos.filter(x => x.codigo === p.codigo && x.status === 'Inativo');
+    const historico = mockData.processos.filter(x => x.codigo === p.codigo && x.id !== p.id).sort((a,b) => new Date(b.dataRevisao) - new Date(a.dataRevisao));
     html += `<h2 class="text-xl font-bold mt-8 mb-2">Tabela de Histórico de Versões</h2>`;
     if(historico.length > 0) {
         html += `<table class="min-w-full bg-white border">
                     <thead class="bg-gray-200">
-                        <tr><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Edição</th><th class="border px-4 py-2">Ação</th></tr>
+                        <tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Data Edição</th><th class="border px-4 py-2">Estado</th><th class="border px-4 py-2">Ação</th></tr>
                     </thead>
                     <tbody>`;
         historico.forEach(h => {
             html += `<tr class="historical-row">
+                        <td class="border px-4 py-2">${h.codigo}</td>
+                        <td class="border px-4 py-2">${h.nome}</td>
                         <td class="border px-4 py-2">${h.versao}</td>
                         <td class="border px-4 py-2">${h.dataRevisao}</td>
-                        <td class="border px-4 py-2">
+                        <td class="border px-4 py-2">${h.status}</td>
+                        <td class="border px-4 py-2 flex flex-wrap gap-2">
                             <button class="bg-gray-500 text-white px-3 py-1 rounded" onclick="navigateTo('I13', '${h.id}')">Detalhe Histórico</button>
+                            <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I4', '${h.id}')">Edição</button>
+                            ${h.status === 'Rascunho' ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="guardarProcessoI4('${h.id}', 'Publicado')">Publicar</button>` : ''}
                         </td>
                      </tr>`;
         });
@@ -716,65 +888,200 @@ function renderI3DetalheProcessoAtivo() {
     return html;
 }
 
+
+
+
+
 function renderI4RevisaoProcesso() {
     const p = getItemById(currentState.contextId);
     let html = `<h1 class="text-3xl font-bold mb-4">[I4] Edição de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Código (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.codigo}" readonly></div>
-            <div><label class="block font-bold">Nome (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.nome}" readonly></div>
-            <div><label class="block font-bold">Objetivo (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.objetivo}" readonly></div>
-            <div><label class="block font-bold">Âmbito (Imutável)</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.ambito}" readonly></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full" value="${p.dataElaboracao}"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full" value="${p.versao}"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full" value="${p.dataRevisao}"></div>
-        </div>
-        <div class="mb-4">
-            <h2 class="font-bold text-lg mb-2">Tabela de Donos do Processo</h2>
-            <div class="flex gap-2 mb-2">
-                <input type="text" placeholder="Email do dono" class="border p-2 flex-grow">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Adicionar</button>
-            </div>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Nome</th><th class="p-2 border">Email</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-            p.donos.forEach(d => html += `<tr><td class="p-2 border">${d.nome}</td><td class="p-2 border">${d.email}</td><td class="p-2 border"><button class="text-red-600">Remover</button></td></tr>`);
-    html += `</tbody></table>
-        </div>
+            <div><label class="block font-bold">Label de Registo</label><input type="text" id="i4_labelRegisto" class="border p-2 w-full" value="${p.labelRegisto || ''}"></div>
+            <div><label class="block font-bold">Código (Imutável)</label><input type="text" id="i4_codigo" class="border p-2 w-full bg-gray-100" value="${p.codigo}" readonly></div>
 
-        <div class="mb-4">
-            <h2 class="font-bold text-lg mb-2">Tabela com a lista de sub processos</h2>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Código do sub processo</th><th class="p-2 border">Nome</th><th class="p-2 border">Versão</th><th class="p-2 border">Data de elaboração</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-            // Mock sub processes
-            html += `<tr><td class="p-2 border">SP-001</td><td class="p-2 border">Sub Processo Mock</td><td class="p-2 border">1.0</td><td class="p-2 border">2023-10-01</td><td class="p-2 border">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1">Editar</button>
-                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1">Desativar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>
-            </td></tr>`;
-    html += `</tbody></table>
-        </div>
+            <div><label class="block font-bold">Nome (Imutável)</label><input type="text" id="i4_nome" class="border p-2 w-full bg-gray-100" value="${p.nome}" readonly></div>
+            <div><label class="block font-bold">Objetivo (Imutável)</label><input type="text" id="i4_objetivo" class="border p-2 w-full bg-gray-100" value="${p.objetivo}" readonly></div>
 
-        <div class="mb-4">
-            <h2 class="font-bold text-lg mb-2">Tabela com a lista de documentos</h2>
-            <table class="w-full border text-left"><thead class="bg-gray-100"><tr><th class="p-2 border">Código do documento</th><th class="p-2 border">Designação</th><th class="p-2 border">Versão</th><th class="p-2 border">Data de elaboração</th><th class="p-2 border">Tipo</th><th class="p-2 border">Ações</th></tr></thead><tbody>`;
-            // Mock documents
-            html += `<tr><td class="p-2 border">DOC-001</td><td class="p-2 border">Documento Mock</td><td class="p-2 border">1.0</td><td class="p-2 border">2023-10-01</td><td class="p-2 border">Instrumento</td><td class="p-2 border">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1">Editar</button>
-                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1">Desativar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded">Eliminar</button>
-            </td></tr>`;
+            <div><label class="block font-bold">Âmbito (Imutável)</label><input type="text" id="i4_ambito" class="border p-2 w-full bg-gray-100" value="${p.ambito}" readonly></div>
+            <div><label class="block font-bold">Data de Elaboração</label><input type="date" id="i4_dataElaboracao" class="border p-2 w-full" value="${p.dataElaboracao || ''}"></div>
 
-    html += `</tbody></table>
+            <div><label class="block font-bold">Donos do Processo</label><input type="text" id="i4_donos" class="border p-2 w-full" value="${p.donos || ''}"></div>
+            <div><label class="block font-bold">Versão</label><input type="text" id="i4_versao" class="border p-2 w-full" value="${p.versao || ''}"></div>
+
+            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" id="i4_dataRevisao" class="border p-2 w-full" value="${p.dataRevisao || ''}"></div>
+            <div><label class="block font-bold">Riscos Relevantes</label><input type="text" id="i4_riscosRelevantes" class="border p-2 w-full" value="${p.riscosRelevantes || ''}"></div>
+
+            <div><label class="block font-bold">Oportunidades</label><input type="text" id="i4_oportunidades" class="border p-2 w-full" value="${p.oportunidades || ''}"></div>
+            <div><label class="block font-bold">Entradas</label><input type="text" id="i4_entradas" class="border p-2 w-full" value="${p.entradas || ''}"></div>
+
+            <div><label class="block font-bold">Saídas</label><input type="text" id="i4_saidas" class="border p-2 w-full" value="${p.saidas || ''}"></div>
+            <div><label class="block font-bold">Indicadores de Sucesso</label><input type="text" id="i4_indicadoresSucesso" class="border p-2 w-full" value="${p.indicadoresSucesso || ''}"></div>
+
+            <div><label class="block font-bold">Partes Interessadas Externas</label><input type="text" id="i4_partesInteressadasExternas" class="border p-2 w-full" value="${p.partesInteressadasExternas || ''}"></div>
+            <div><label class="block font-bold">Partes Interessadas Internas</label><input type="text" id="i4_partesInteressadasInternas" class="border p-2 w-full" value="${p.partesInteressadasInternas || ''}"></div>
+
+            <div class="col-span-2"><label class="block font-bold">Referenciais</label><input type="text" id="i4_referenciais" class="border p-2 w-full" value="${p.referenciais || ''}"></div>
         </div>
 
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho', '${p.id}')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcesso('publicar', '${p.id}')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I3', '${p.id}')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcessoI4('${p.id}', 'Rascunho')">Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcessoI4('${p.id}', 'Publicado')">Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>
         </div>
     </div>`;
     return html;
 }
+
+function guardarProcessoI4(originalId, status) {
+    const original = getItemById(originalId);
+    if(!original) return;
+
+    const novosDados = {
+        labelRegisto: document.getElementById('i4_labelRegisto').value,
+        dataElaboracao: document.getElementById('i4_dataElaboracao').value,
+        donos: document.getElementById('i4_donos').value,
+        versao: document.getElementById('i4_versao').value,
+        dataRevisao: document.getElementById('i4_dataRevisao').value,
+        riscosRelevantes: document.getElementById('i4_riscosRelevantes').value,
+        oportunidades: document.getElementById('i4_oportunidades').value,
+        entradas: document.getElementById('i4_entradas').value,
+        saidas: document.getElementById('i4_saidas').value,
+        indicadoresSucesso: document.getElementById('i4_indicadoresSucesso').value,
+        partesInteressadasExternas: document.getElementById('i4_partesInteressadasExternas').value,
+        partesInteressadasInternas: document.getElementById('i4_partesInteressadasInternas').value,
+        referenciais: document.getElementById('i4_referenciais').value
+    };
+
+    if (original.status === 'Publicado' && status === 'Rascunho') {
+        // Create Draft Replica
+        const replica = {
+            ...original,
+            ...novosDados,
+            id: 'P' + Date.now(), // New ID for replica
+            status: 'Rascunho'
+        };
+        mockData.processos.push(replica);
+        alert('Criada nova cópia em Rascunho. O original ativo permanece inalterado.');
+    } else if (original.status === 'Publicado' && status === 'Publicado') {
+        // Publish new version, set old to inactive
+        const newVersion = {
+            ...original,
+            ...novosDados,
+            id: 'P' + Date.now(),
+            status: 'Publicado'
+        };
+        original.status = 'Inativo';
+        mockData.processos.push(newVersion);
+        alert('Nova versão publicada. A versão anterior foi inativada.');
+    } else if (original.status === 'Rascunho' && status === 'Rascunho') {
+        // Update existing draft
+        Object.assign(original, novosDados);
+        alert('Rascunho atualizado.');
+    } else if ((original.status === 'Rascunho' || original.status === 'Inativo') && status === 'Publicado') {
+        // Publish this record, inactivate currently active record of the same code
+        Object.assign(original, novosDados);
+        original.status = 'Publicado';
+        mockData.processos.forEach(p => {
+            if (p.codigo === original.codigo && p.id !== original.id && p.status === 'Publicado') {
+                p.status = 'Inativo';
+            }
+        });
+        alert('Registo publicado. Qualquer versão anterior ativa foi inativada.');
+    } else if (original.status === 'Inativo' && status === 'Rascunho') {
+        // Edit inactive to draft (duplicate)
+        const replica = {
+            ...original,
+            ...novosDados,
+            id: 'P' + Date.now(), // New ID for replica
+            status: 'Rascunho'
+        };
+        mockData.processos.push(replica);
+        alert('Criado novo Rascunho a partir do histórico.');
+    }
+
+    navigateTo('I1');
+}
+
+function novaEdicaoProcesso(id) {
+    navigateTo('I4', id);
+}
+
+
+function guardarProcessoI4(originalId, status) {
+    const original = getItemById(originalId);
+    if(!original) return;
+
+    const novosDados = {
+        labelRegisto: document.getElementById('i4_labelRegisto').value,
+        dataElaboracao: document.getElementById('i4_dataElaboracao').value,
+        donos: document.getElementById('i4_donos').value,
+        versao: document.getElementById('i4_versao').value,
+        dataRevisao: document.getElementById('i4_dataRevisao').value,
+        riscosRelevantes: document.getElementById('i4_riscosRelevantes').value,
+        oportunidades: document.getElementById('i4_oportunidades').value,
+        entradas: document.getElementById('i4_entradas').value,
+        saidas: document.getElementById('i4_saidas').value,
+        indicadoresSucesso: document.getElementById('i4_indicadoresSucesso').value,
+        partesInteressadasExternas: document.getElementById('i4_partesInteressadasExternas').value,
+        partesInteressadasInternas: document.getElementById('i4_partesInteressadasInternas').value,
+        referenciais: document.getElementById('i4_referenciais').value
+    };
+
+    if (original.status === 'Publicado' && status === 'Rascunho') {
+        // Create Draft Replica
+        const replica = {
+            ...original,
+            ...novosDados,
+            id: 'P' + Date.now(), // New ID for replica
+            status: 'Rascunho'
+        };
+        mockData.processos.push(replica);
+        alert('Criada nova cópia em Rascunho. O original ativo permanece inalterado.');
+    } else if (original.status === 'Publicado' && status === 'Publicado') {
+        // Publish new version, set old to inactive
+        const newVersion = {
+            ...original,
+            ...novosDados,
+            id: 'P' + Date.now(),
+            status: 'Publicado'
+        };
+        original.status = 'Inativo';
+        mockData.processos.push(newVersion);
+        alert('Nova versão publicada. A versão anterior foi inativada.');
+    } else if (original.status === 'Rascunho' && status === 'Rascunho') {
+        // Update existing draft
+        Object.assign(original, novosDados);
+        alert('Rascunho atualizado.');
+    } else if ((original.status === 'Rascunho' || original.status === 'Inativo') && status === 'Publicado') {
+        // Publish this record, inactivate currently active record of the same code
+        Object.assign(original, novosDados);
+        original.status = 'Publicado';
+        mockData.processos.forEach(p => {
+            if (p.codigo === original.codigo && p.id !== original.id && p.status === 'Publicado') {
+                p.status = 'Inativo';
+            }
+        });
+        alert('Registo publicado. Qualquer versão anterior ativa foi inativada.');
+    } else if (original.status === 'Inativo' && status === 'Rascunho') {
+        // Edit inactive to draft (duplicate)
+        const replica = {
+            ...original,
+            ...novosDados,
+            id: 'P' + Date.now(), // New ID for replica
+            status: 'Rascunho'
+        };
+        mockData.processos.push(replica);
+        alert('Criado novo Rascunho a partir do histórico.');
+    }
+
+    navigateTo('I1');
+}
+
+function novaEdicaoProcesso(id) {
+    navigateTo('I4', id);
+}
+
 
 function renderI5ListaSubProcessos() {
     let html = `<div class="flex justify-between items-center mb-4">
