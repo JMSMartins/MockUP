@@ -276,12 +276,18 @@ function eliminarDocumento(docId) {
 // --- Lógica de Gravação e Publicação ---
 // "Guardar como Rascunho" e "Guardar e Publicar"
 function guardarProcesso(actionType, id = null) {
-    // Para simplificar o mockup, não lemos todos os campos do DOM, vamos apenas simular
-    // o save de um novo ou existente com o estado correto.
     let processo = mockData.processos.find(x => x.id === id);
     let isNew = false;
+    let isDuplicatingActive = false;
 
-    if (!processo) {
+    // If it's an existing active record and we're saving as draft, duplicate it
+    if (processo && processo.status === 'Publicado' && actionType === 'rascunho') {
+        const originalProcesso = processo;
+        processo = JSON.parse(JSON.stringify(originalProcesso));
+        processo.id = 'P' + Date.now();
+        mockData.processos.push(processo);
+        isDuplicatingActive = true;
+    } else if (!processo) {
         // Mock de Criação
         isNew = true;
         processo = {
@@ -302,8 +308,12 @@ function guardarProcesso(actionType, id = null) {
 
     if (actionType === 'rascunho') {
         processo.status = 'Rascunho';
-        alert('Guardado como Rascunho com sucesso! Este registo está agora disponível apenas nas listas de Rascunho (ex: I16).');
-        navigateTo('I16');
+        if (isDuplicatingActive) {
+            alert('Guardado como Rascunho com sucesso! Foi criada uma réplica em Rascunho mantendo a versão original Ativa.');
+        } else {
+            alert('Guardado como Rascunho com sucesso! Este registo está agora disponível nas listas principais.');
+        }
+        navigateTo('I1');
     } else if (actionType === 'publicar') {
         processo.status = 'Publicado';
 
@@ -321,8 +331,15 @@ function guardarProcesso(actionType, id = null) {
 
 function guardarSubProcesso(actionType, id = null) {
     let sp = mockData.subProcessos.find(x => x.id === id);
+    let isDuplicatingActive = false;
 
-    if (!sp) {
+    if (sp && sp.status === 'Publicado' && actionType === 'rascunho') {
+        const originalSp = sp;
+        sp = JSON.parse(JSON.stringify(originalSp));
+        sp.id = 'SP' + Date.now();
+        mockData.subProcessos.push(sp);
+        isDuplicatingActive = true;
+    } else if (!sp) {
         sp = {
             id: 'SP' + Date.now(),
             processoPaiId: 'PROC-001',
@@ -341,8 +358,12 @@ function guardarSubProcesso(actionType, id = null) {
 
     if (actionType === 'rascunho') {
         sp.status = 'Rascunho';
-        alert('Guardado como Rascunho com sucesso!');
-        navigateTo('I17');
+        if (isDuplicatingActive) {
+            alert('Guardado como Rascunho com sucesso! Foi criada uma réplica em Rascunho mantendo a versão original Ativa.');
+        } else {
+            alert('Guardado como Rascunho com sucesso!');
+        }
+        navigateTo('I5');
     } else if (actionType === 'publicar') {
         sp.status = 'Publicado';
 
@@ -359,8 +380,15 @@ function guardarSubProcesso(actionType, id = null) {
 
 function guardarDocumento(actionType, id = null) {
     let doc = mockData.documentos.find(x => x.id === id);
+    let isDuplicatingActive = false;
 
-    if (!doc) {
+    if (doc && doc.status === 'Publicado' && actionType === 'rascunho') {
+        const originalDoc = doc;
+        doc = JSON.parse(JSON.stringify(originalDoc));
+        doc.id = 'DOC' + Date.now();
+        mockData.documentos.push(doc);
+        isDuplicatingActive = true;
+    } else if (!doc) {
         doc = {
             id: 'DOC' + Date.now(),
             codigo: 'DOC-MOCK-' + Date.now().toString().slice(-4),
@@ -376,8 +404,12 @@ function guardarDocumento(actionType, id = null) {
 
     if (actionType === 'rascunho') {
         doc.status = 'Rascunho';
-        alert('Guardado como Rascunho com sucesso!');
-        navigateTo('I18');
+        if (isDuplicatingActive) {
+            alert('Guardado como Rascunho com sucesso! Foi criada uma réplica em Rascunho mantendo a versão original Ativa.');
+        } else {
+            alert('Guardado como Rascunho com sucesso!');
+        }
+        navigateTo('I9');
     } else if (actionType === 'publicar') {
         doc.status = 'Publicado';
 
@@ -489,15 +521,7 @@ function render() {
         case 'I14':
             app.innerHTML = renderI14DetalheHistoricoDocumento();
             break;
-        case 'I16':
-            app.innerHTML = renderI16ListaRascunhosProcessos();
-            break;
-        case 'I17':
-            app.innerHTML = renderI17ListaRascunhosSubProcessos();
-            break;
-        case 'I18':
-            app.innerHTML = renderI18ListaRascunhosDocumentos();
-            break;
+
         default:
             app.innerHTML = `<div><h1>404 Not Found</h1><button onclick="navigateTo('I1')">Go Home</button></div>`;
     }
@@ -507,107 +531,58 @@ function render() {
 // RENDERERS
 // ==========================================
 
-function renderI16ListaRascunhosProcessos() {
-    let html = `<div class="flex justify-between items-center mb-4">
-                    <h1 class="text-3xl font-bold">[I16] Lista de Processos em Rascunho</h1>
-                </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
-
-    mockData.processos.filter(p => p.status === 'Rascunho').forEach(p => {
-        html += `<tr>
-            <td class="border px-4 py-2">${p.codigo}</td>
-            <td class="border px-4 py-2">${p.nome}</td>
-            <td class="border px-4 py-2">${p.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I13', '${p.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarProcesso('${p.id}')">Eliminar</button>
-            </td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-    return html;
-}
-
-function renderI17ListaRascunhosSubProcessos() {
-    let html = `<div class="flex justify-between items-center mb-4">
-                    <h1 class="text-3xl font-bold">[I17] Lista de Sub processos em Rascunho</h1>
-                </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código Pai</th><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
-
-    mockData.subProcessos.filter(sp => sp.status === 'Rascunho').forEach(sp => {
-        html += `<tr>
-            <td class="border px-4 py-2">${sp.processoPaiId}</td>
-            <td class="border px-4 py-2">${sp.codigo}</td>
-            <td class="border px-4 py-2">${sp.nome}</td>
-            <td class="border px-4 py-2">${sp.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I14', '${sp.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">Eliminar</button>
-            </td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-    return html;
-}
-
-function renderI18ListaRascunhosDocumentos() {
-    let html = `<div class="flex justify-between items-center mb-4">
-                    <h1 class="text-3xl font-bold">[I18] Lista de Documentos em Rascunho</h1>
-                </div>`;
-    html += `<table class="min-w-full bg-white border"><thead class="bg-gray-200"><tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Designação</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Ações</th></tr></thead><tbody>`;
-
-    mockData.documentos.filter(doc => doc.status === 'Rascunho').forEach(doc => {
-        html += `<tr>
-            <td class="border px-4 py-2">${doc.codigo}</td>
-            <td class="border px-4 py-2">${doc.designacao}</td>
-            <td class="border px-4 py-2">${doc.versao}</td>
-            <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I15', '${doc.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I12', '${doc.id}')">Edição</button>
-                <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">Eliminar</button>
-            </td>
-        </tr>`;
-    });
-    html += `</tbody></table>`;
-    return html;
-}
-
 function renderI1ListaProcessos() {
     let html = `<div class="flex justify-between items-center mb-4">
                     <h1 class="text-3xl font-bold">[I1] Lista de Processos</h1>
-                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I2')">Adicionar Processo</button>
+                    <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I2')">[I1.BT02] Adicionar Processo</button>
                 </div>`;
 
     html += `<div class="mb-4 flex gap-2">
-                <input type="text" placeholder="Pesquisa (Código, Nome, Objetivo, Âmbito)" class="border p-2 rounded w-1/3">
-                <button class="bg-blue-600 text-white px-4 py-2 rounded">Pesquisar</button>
+                <input type="text" placeholder="Pesquisa (Código, Nome, Objetivo, Âmbito)" class="border p-2 rounded w-1/3" title="[I1.TXT01] Input Pesquisa">
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" title="[I1.BT01] Pesquisar">[I1.BT01] Pesquisar</button>
              </div>`;
+
+    html += `<div class="mb-4">
+                <label class="block text-sm font-bold mb-1">[I1.CHK01] Filtro de Estado</label>
+                <div class="flex gap-4">
+                    <label><input type="checkbox" value="Publicado"> Publicado</label>
+                    <label><input type="checkbox" value="Rascunho"> Rascunho</label>
+                    <label><input type="checkbox" value="Inativo"> Inativo</label>
+                </div>
+            </div>`;
 
     html += `<table class="min-w-full bg-white border">
                 <thead class="bg-gray-200">
-                    <tr><th class="border px-4 py-2">Código</th><th class="border px-4 py-2">Nome</th><th class="border px-4 py-2">Versão</th><th class="border px-4 py-2">Status</th><th class="border px-4 py-2">Ações</th></tr>
+                    <tr>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Código</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Nome</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Versão</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Data de elaboração</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Estado</th>
+                        <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Label de Registo + ID de registo</th>
+                        <th class="border px-4 py-2">Ações</th>
+                    </tr>
                 </thead>
                 <tbody>`;
 
-    // Só mostrar Ativos / Publicados
+    // Mostrar todos por omissão
     mockData.processos.forEach(p => {
-        if(p.status === 'Publicado') {
             html += `<tr>
-                <td class="border px-4 py-2">${p.codigo}</td>
-                <td class="border px-4 py-2">${p.nome}</td>
-                <td class="border px-4 py-2">${p.versao}</td>
-                <td class="border px-4 py-2"><span class="bg-green-100 text-green-800 px-2 py-1 rounded">${p.status}</span></td>
+                <td class="border px-4 py-2">${p.codigo || ''}</td>
+                <td class="border px-4 py-2">${p.nome || ''}</td>
+                <td class="border px-4 py-2">${p.versao || ''}</td>
+                <td class="border px-4 py-2">${p.dataElaboracao || ''}</td>
+                <td class="border px-4 py-2"><span class="bg-gray-100 px-2 py-1 rounded">${p.status || ''}</span></td>
+                <td class="border px-4 py-2">${p.labelRegisto ? p.labelRegisto + ' ' : ''}${p.id || ''}</td>
                 <td class="border px-4 py-2">
-                    <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I3', '${p.id}')">Detalhe</button>
-                    <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I4', '${p.id}')">Editar</button>
-                    <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I5', '${p.id}')">Sub processos</button>
-                    <button class="bg-indigo-500 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I9', '${p.id}')">Documentos</button>
-                    <button class="bg-red-500 text-white px-3 py-1 rounded" onclick="desativarProcesso('${p.id}')">Desativar</button>
+                    <button class="bg-blue-500 text-white px-3 py-1 rounded mr-2 mb-1" onclick="navigateTo('I3', '${p.id}')">[I1.TB01.BT01] Detalhe</button>
+                    <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-2 mb-1" onclick="navigateTo('I4', '${p.id}')">[I1.TB01.BT02] Edição</button>
+                    <button class="bg-gray-500 text-white px-3 py-1 rounded mr-2 mb-1" onclick="navigateTo('I5', '${p.id}')">[I1.TB01.BT03] Sub processos</button>
+                    <button class="bg-indigo-500 text-white px-3 py-1 rounded mr-2 mb-1" onclick="navigateTo('I9', '${p.id}')">[I1.TB01.BT04] Documentos</button>
+                    <button class="bg-orange-500 text-white px-3 py-1 rounded mr-2 mb-1" onclick="desativarProcesso('${p.id}')">[I1.TB01.BT05] Desativar</button>
+                    <button class="bg-red-500 text-white px-3 py-1 rounded mb-1" onclick="eliminarProcesso('${p.id}')">[I1.TB01.BT06] Eliminar</button>
                 </td>
             </tr>`;
-        }
     });
 
     html += `</tbody></table>`;
@@ -615,33 +590,33 @@ function renderI1ListaProcessos() {
 }
 
 function renderI2CriacaoProcesso() {
-    let html = `<h1 class="text-3xl font-bold mb-4">[I2] Criação de Processo</h1>`;
+    let html = `<h1 class="text-3xl font-bold mb-4">[I2] Interface 2 – Criação de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">Upload Logo</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Upload Banner</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Label de Registo</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Código</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Nome</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Objetivo</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Âmbito</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Donos do Processo</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Versão</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Riscos Relevantes</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Oportunidades</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Entradas</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Saídas</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Indicadores de Sucesso</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Partes Interessadas Externas</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Partes Interessadas Internas</label><input type="text" class="border p-2 w-full"></div>
-            <div><label class="block font-bold">Referenciais</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.UPL01] Upload Logo</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.UPL02] Upload Banner</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT01] Label de Registo</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT02] Código</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT03] Nome</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT04] Objetivo</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT05] Âmbito</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.DT01] Data de Elaboração</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT06] Donos do Processo</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT07] Versão</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.DT02] Data de revisão da versão</label><input type="date" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT08] Riscos Relevantes</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT09] Oportunidades</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT10] Entradas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT11] Saídas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT12] Indicadores de Sucesso</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT13] Partes Interessadas Externas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT14] Partes Interessadas Internas</label><input type="text" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.TXT15] Referenciais</label><input type="text" class="border p-2 w-full"></div>
         </div>
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcesso('publicar')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho')">[I2.BT01] Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcesso('publicar')">[I2.BT02] Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I1')">[I2.BT03] Voltar</button>
         </div>
     </div>`;
     return html;
@@ -653,13 +628,13 @@ function renderI3DetalheProcessoAtivo() {
     <div class="mb-4 flex justify-between items-center">
         <h1 class="text-3xl font-bold">[I3] Interface 3 – Detalhe</h1>
         <div>
-            <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I4', '${p.id}')">Edição</button>
-            <button class="bg-orange-500 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Desativar')">Desativar</button>
-            <button class="bg-red-500 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Eliminar')">Eliminar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I1')">Voltar</button>
+            <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I4', '${p.id}')">[I3.BT03] Edição</button>
+            <button class="bg-orange-500 text-white px-4 py-2 rounded shadow mr-2" onclick="desativarProcesso('${p.id}')">[I3.BT04] Desativar</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded shadow mr-2" onclick="eliminarProcesso('${p.id}')">[I3.BT05] Eliminar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I1')">[I3.BT06] Voltar</button>
         </div>
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-2 gap-4 mb-6 opacity-75">
         <div><strong>[I3.UPL01] Upload Logo:</strong> <input type="file" disabled></div>
         <div><strong>[I3.UPL02] Upload Banner:</strong> <input type="file" disabled></div>
         <div><strong>[I3.TXT01] Label de Registo:</strong> ${p.labelRegisto || ''}</div>
@@ -683,7 +658,7 @@ function renderI3DetalheProcessoAtivo() {
     </div>
 
     <div class="mb-4">
-        <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I6', '${p.id}')">Adicionar sub processo</button>
+        <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I6', '${p.id}')">[I3.BT01] Adicionar sub processo</button>
     </div>
     <h2 class="text-xl font-bold mt-4 mb-2">[I3.TB02] Tabela com a lista de sub processos</h2>
     <table class="min-w-full bg-white border mb-6">
@@ -707,8 +682,8 @@ function renderI3DetalheProcessoAtivo() {
                     <td class="border px-4 py-2">${sp.versao}</td>
                     <td class="border px-4 py-2">${sp.dataElaboracao}</td>
                     <td class="border px-4 py-2">
-                        <button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button>
-                        <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">Editar</button>
+                        <button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I7', '${sp.id}')">[I3.TB02.BT01] Detalhe</button>
+                        <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I8', '${sp.id}')">[I3.TB02.BT02] Editar</button>
                     </td>
                 </tr>`;
             }
@@ -719,7 +694,7 @@ function renderI3DetalheProcessoAtivo() {
     </table>
 
     <div class="mb-4">
-        <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I10', '${p.id}')">Adicionar documentos</button>
+        <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I10', '${p.id}')">[I3.BT02] Adicionar documentos</button>
     </div>
     <h2 class="text-xl font-bold mt-4 mb-2">[I3.TB03] Tabela com a lista de documentos</h2>
     <table class="min-w-full bg-white border mb-6">
@@ -745,8 +720,8 @@ function renderI3DetalheProcessoAtivo() {
                     <td class="border px-4 py-2">${doc.dataElaboracao}</td>
                     <td class="border px-4 py-2">${doc.tipo || ''}</td>
                     <td class="border px-4 py-2">
-                        <button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
-                        <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I10', '${doc.id}')">Editar</button>
+                        <button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">[I3.TB03.BT01] Detalhe</button>
+                        <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I10', '${doc.id}')">[I3.TB03.BT02] Editar</button>
                     </td>
                 </tr>`;
             }
@@ -770,7 +745,6 @@ function renderI3DetalheProcessoAtivo() {
         </thead>
         <tbody>`;
 
-    // Historico order by dataRevisao desc
     const historico = mockData.processos
         .filter(x => x.codigo === p.codigo && x.id !== p.id)
         .sort((a,b) => new Date(b.dataRevisao) - new Date(a.dataRevisao));
@@ -783,9 +757,9 @@ function renderI3DetalheProcessoAtivo() {
             <td class="border px-4 py-2">${h.dataRevisao}</td>
             <td class="border px-4 py-2">${h.status}</td>
             <td class="border px-4 py-2">
-                <button class="bg-gray-600 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I12', '${h.id}')">Detalhe Histórico</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I4', '${h.id}')">Edição</button>
-                <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="alert('Publicar')">Publicar</button>
+                <button class="bg-gray-600 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I12', '${h.id}')">[I3.TB04.BT01] Detalhe Histórico</button>
+                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I4', '${h.id}')">[I3.TB04.BT02] Edição</button>
+                ${(h.status === 'Rascunho' || h.status === 'Inativo') ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="guardarProcesso('publicar', '${h.id}')">[I3.TB04.BT03] Publicar</button>` : ''}
             </td>
         </tr>`;
     });
@@ -824,7 +798,7 @@ function renderI4RevisaoProcesso() {
         </div>
 
         <div class="mb-4">
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I6', '${p.id}')">Adicionar sub processos</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I6', '${p.id}')">[I3.BT02] Adicionar sub processos</button>
         </div>
         <h2 class="font-bold text-lg mb-2">[I4.TB02] Tabela com a lista de sub processos</h2>
         <table class="w-full border text-left mb-6"><thead class="bg-gray-100"><tr>
@@ -844,10 +818,10 @@ function renderI4RevisaoProcesso() {
                         <td class="p-2 border">${sp.versao}</td>
                         <td class="p-2 border">${sp.dataElaboracao}</td>
                         <td class="p-2 border">
-                            <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button>
-                            <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I8', '${sp.id}')">Editar</button>
-                            <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="alert('Desativar')">Desativar</button>
-                            <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="alert('Eliminar')">Eliminar</button>
+                            <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I7', '${sp.id}')">[I4.TB02.BT01] Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I8', '${sp.id}')">[I4.TB02.BT02] Editar</button>
+                            <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="desativarSubProcesso('${sp.id}')">[I4.TB02.BT03] Desativar</button>
+                            <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="eliminarSubProcesso('${sp.id}')">[I4.TB02.BT04] Eliminar</button>
                         </td>
                     </tr>`;
                 }
@@ -856,7 +830,7 @@ function renderI4RevisaoProcesso() {
         html += `</tbody></table>
 
         <div class="mb-4">
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I10', '${p.id}')">Adicionar documentos</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I10', '${p.id}')">[I4.BT02] Adicionar documentos</button>
         </div>
         <h2 class="font-bold text-lg mb-2">[I4.TB03] Tabela com a lista de documentos</h2>
         <table class="w-full border text-left mb-6"><thead class="bg-gray-100"><tr>
@@ -878,10 +852,10 @@ function renderI4RevisaoProcesso() {
                         <td class="p-2 border">${doc.dataElaboracao}</td>
                         <td class="p-2 border">${doc.tipo || ''}</td>
                         <td class="p-2 border">
-                            <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
-                            <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I10', '${doc.id}')">Editar</button>
-                            <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="alert('Desativar')">Desativar</button>
-                            <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="alert('Eliminar')">Eliminar</button>
+                            <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I11', '${doc.id}')">[I4.TB03.BT01] Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I10', '${doc.id}')">[I4.TB03.BT02] Editar</button>
+                            <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="desativarDocumento('${doc.id}')">[I4.TB03.BT03] Desativar</button>
+                            <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">[I4.TB03.BT04] Eliminar</button>
                         </td>
                     </tr>`;
                 }
@@ -890,9 +864,9 @@ function renderI4RevisaoProcesso() {
         html += `</tbody></table>
 
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="alert('Guardar como Rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="alert('Guardar e Publicar')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I3', '${p.id}')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarProcesso('rascunho', '${p.id}')">[I4.BT01] Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarProcesso('publicar', '${p.id}')">[I4.BT02] Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I3', '${p.id}')">[I4.BT03] Voltar</button>
         </div>
     </div>`;
     return html;
@@ -901,8 +875,8 @@ function renderI4RevisaoProcesso() {
 function renderI5ListaSubProcessos() {
     let html = `
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold">[I5] Interface 5 – Lista de Sub processos</h1>
-        <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I6')">Adicionar Sub processo</button>
+        <h1 class="text-3xl font-bold">[I5] Lista de Sub processos</h1>
+        <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I6')">[I5.BT02] Adicionar Sub processo</button>
     </div>
     <div class="mb-4 flex gap-2 items-end">
         <div>
@@ -936,6 +910,7 @@ function renderI5ListaSubProcessos() {
                 <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Nome</th>
                 <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Versão</th>
                 <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Data de elaboração</th>
+                <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Estado</th>
                 <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Label de Registo + ID de registo</th>
                 <th class="border px-4 py-2">Ações</th>
             </tr>
@@ -951,13 +926,14 @@ function renderI5ListaSubProcessos() {
             <td class="border px-4 py-2">${sp.nome}</td>
             <td class="border px-4 py-2">${sp.versao}</td>
             <td class="border px-4 py-2">${sp.dataElaboracao}</td>
+            <td class="border px-4 py-2"><span class="bg-gray-100 px-2 py-1 rounded">${sp.status}</span></td>
             <td class="border px-4 py-2">${label}${idRegisto}</td>
             <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I7', '${sp.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
-                <button class="bg-gray-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I9', '${sp.id}')">Documentos</button>
-                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="alert('Desativar')">Desativar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="alert('Eliminar')">Eliminar</button>
+                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1 mb-1" onclick="navigateTo('I7', '${sp.id}')">[I5.TB01.BT01] Detalhe</button>
+                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1 mb-1" onclick="navigateTo('I8', '${sp.id}')">[I5.TB01.BT02] Edição</button>
+                <button class="bg-gray-500 text-white px-2 py-1 rounded mr-1 mb-1" onclick="navigateTo('I9', '${sp.id}')">[I5.TB01.BT03] Documentos</button>
+                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1 mb-1" onclick="desativarSubProcesso('${sp.id}')">[I5.TB01.BT04] Desativar</button>
+                <button class="bg-red-500 text-white px-2 py-1 rounded mb-1" onclick="eliminarSubProcesso('${sp.id}')">[I5.TB01.BT05] Eliminar</button>
             </td>
         </tr>`;
     });
@@ -967,7 +943,7 @@ function renderI5ListaSubProcessos() {
 }
 
 function renderI6CriacaoSubProcesso() {
-    let html = `<h1 class="text-3xl font-bold mb-4">[I6] Interface 6 – Criação de Sub processo</h1>
+    let html = `<h1 class="text-3xl font-bold mb-4">[I6] Criação de Sub processo</h1>
     <div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div><label class="block font-bold">[I6.LB01] Processo Pai</label>
@@ -997,9 +973,9 @@ function renderI6CriacaoSubProcesso() {
             <div><label class="block font-bold">[I6.TXT15] Referenciais</label><input type="text" class="border p-2 w-full"></div>
         </div>
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="alert('Guardar como Rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="alert('Guardar e Publicar')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I5')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('rascunho')">[I6.BT01] Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('publicar')">[I6.BT02] Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I5')">[I6.BT03] Voltar</button>
         </div>
     </div>`;
     return html;
@@ -1011,13 +987,13 @@ function renderI7DetalheSubProcessoAtivo() {
     <div class="mb-4 flex justify-between items-center">
         <h1 class="text-3xl font-bold">[I7] Interface 7 – Detalhe</h1>
         <div>
-            <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I8', '${sp.id}')">Edição</button>
-            <button class="bg-orange-500 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Desativar')">Desativar</button>
-            <button class="bg-red-500 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Eliminar')">Eliminar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I5')">Voltar</button>
+            <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I8', '${sp.id}')">[I7.BT03] Edição</button>
+            <button class="bg-orange-500 text-white px-4 py-2 rounded shadow mr-2" onclick="desativarSubProcesso('${sp.id}')">[I7.BT04] Desativar</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded shadow mr-2" onclick="eliminarSubProcesso('${sp.id}')">[I7.BT05] Eliminar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I5')">[I7.BT02] Voltar</button>
         </div>
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-2 gap-4 mb-6 opacity-75">
         <div><strong>[I6.LB01] Processo Pai:</strong> ${sp.processoPaiId || ''}</div>
         <div><strong>[I2.UPL01] Upload Logo:</strong> <input type="file" disabled></div>
         <div><strong>[I2.UPL02] Upload Banner:</strong> <input type="file" disabled></div>
@@ -1041,7 +1017,7 @@ function renderI7DetalheSubProcessoAtivo() {
     </div>
 
     <div class="mb-4">
-        <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I10', '${sp.id}')">Adicionar documentos</button>
+        <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="navigateTo('I10', '${sp.id}')">[I7.BT01] Adicionar documentos</button>
     </div>
     <h2 class="text-xl font-bold mt-4 mb-2">[I7.TB01] Tabela com a lista de documentos</h2>
     <table class="min-w-full bg-white border mb-6">
@@ -1059,7 +1035,7 @@ function renderI7DetalheSubProcessoAtivo() {
     if(sp.documentosId) {
         sp.documentosId.forEach(docId => {
             const doc = getItemById(docId);
-            if(doc) {
+            if(doc && doc.status === 'Publicado') {
                 html += `<tr>
                     <td class="border px-4 py-2">${doc.codigo}</td>
                     <td class="border px-4 py-2">${doc.designacao}</td>
@@ -1067,8 +1043,8 @@ function renderI7DetalheSubProcessoAtivo() {
                     <td class="border px-4 py-2">${doc.dataElaboracao}</td>
                     <td class="border px-4 py-2">${doc.tipo || ''}</td>
                     <td class="border px-4 py-2">
-                        <button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
-                        <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I10', '${doc.id}')">Editar</button>
+                        <button class="bg-blue-600 text-white px-3 py-1 rounded mr-2" onclick="navigateTo('I11', '${doc.id}')">[I7.TB01.BT01] Detalhe</button>
+                        <button class="bg-yellow-500 text-white px-3 py-1 rounded" onclick="navigateTo('I10', '${doc.id}')">[I7.TB01.BT02] Editar</button>
                     </td>
                 </tr>`;
             }
@@ -1103,9 +1079,9 @@ function renderI7DetalheSubProcessoAtivo() {
             <td class="border px-4 py-2">${h.dataRevisao}</td>
             <td class="border px-4 py-2">${h.status}</td>
             <td class="border px-4 py-2">
-                <button class="bg-gray-600 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I13', '${h.id}')">Detalhe Histórico</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I8', '${h.id}')">Edição</button>
-                <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="alert('Publicar')">Publicar</button>
+                <button class="bg-gray-600 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I13', '${h.id}')">[I7.TB02.BT01] Detalhe Histórico</button>
+                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I8', '${h.id}')">[I7.TB02.BT02] Edição</button>
+                ${(h.status === 'Rascunho' || h.status === 'Inativo') ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="guardarSubProcesso('publicar', '${h.id}')">[I7.TB02.BT03] Publicar</button>` : ''}
             </td>
         </tr>`;
     });
@@ -1164,10 +1140,10 @@ function renderI8RevisaoSubProcesso() {
                         <td class="p-2 border">${doc.dataElaboracao}</td>
                         <td class="p-2 border">${doc.tipo || ''}</td>
                         <td class="p-2 border">
-                            <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
-                            <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I10', '${doc.id}')">Editar</button>
-                            <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="alert('Desativar')">Desativar</button>
-                            <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="alert('Eliminar')">Eliminar</button>
+                            <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I11', '${doc.id}')">[I8.TB01.BT01] Detalhe</button>
+                            <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I10', '${doc.id}')">[I8.TB01.BT02] Editar</button>
+                            <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="desativarDocumento('${doc.id}')">[I8.TB01.BT03] Desativar</button>
+                            <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="eliminarDocumento('${doc.id}')">[I8.TB01.BT04] Eliminar</button>
                         </td>
                     </tr>`;
                 }
@@ -1176,9 +1152,9 @@ function renderI8RevisaoSubProcesso() {
         html += `</tbody></table>
 
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="alert('Guardar como Rascunho')">Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="alert('Guardar e Publicar')">Guardar e Publicar</button>
-            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I7', '${sp.id}')">Voltar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('rascunho', '${sp.id}')">[I8.BT01] Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarSubProcesso('publicar', '${sp.id}')">[I8.BT02] Guardar e Publicar</button>
+            <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('I7', '${sp.id}')">[I8.BT03] Voltar</button>
         </div>
     </div>`;
     return html;
@@ -1187,8 +1163,8 @@ function renderI8RevisaoSubProcesso() {
 function renderI9ListaDocumentos() {
     let html = `
     <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold">[I9] Interface 9 – Lista de Documentos</h1>
-        <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10')">Adicionar Documento</button>
+        <h1 class="text-3xl font-bold">[I9] Lista de Documentos</h1>
+        <button class="bg-green-600 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I10')">[I9.BT02] Adicionar Documento</button>
     </div>
     <div class="mb-4 flex gap-2 items-end">
         <div class="flex-grow">
@@ -1217,6 +1193,7 @@ function renderI9ListaDocumentos() {
                 <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Data de elaboração</th>
                 <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Tipo</th>
                 <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Label de registo + ID Registo</th>
+                <th class="border px-4 py-2 cursor-pointer hover:bg-gray-300">Estado</th>
                 <th class="border px-4 py-2">Ações</th>
             </tr>
         </thead>
@@ -1234,11 +1211,12 @@ function renderI9ListaDocumentos() {
             <td class="border px-4 py-2">${doc.dataElaboracao}</td>
             <td class="border px-4 py-2">${doc.tipo || ''}</td>
             <td class="border px-4 py-2">${label}${idRegisto}</td>
+            <td class="border px-4 py-2"><span class="bg-gray-100 px-2 py-1 rounded">${doc.status}</span></td>
             <td class="border px-4 py-2">
-                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I11', '${doc.id}')">Detalhe</button>
-                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1" onclick="navigateTo('I10', '${doc.id}')">Edição</button>
-                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1" onclick="alert('Desativar')">Desativar</button>
-                <button class="bg-red-500 text-white px-2 py-1 rounded" onclick="alert('Eliminar')">Eliminar</button>
+                <button class="bg-blue-500 text-white px-2 py-1 rounded mr-1 mb-1" onclick="navigateTo('I11', '${doc.id}')">[I9.TB01.BT01] Detalhe</button>
+                <button class="bg-yellow-500 text-white px-2 py-1 rounded mr-1 mb-1" onclick="navigateTo('I10', '${doc.id}')">[I9.TB01.BT02] Editar</button>
+                <button class="bg-orange-500 text-white px-2 py-1 rounded mr-1 mb-1" onclick="desativarDocumento('${doc.id}')">[I9.TB01.BT03] Desativar</button>
+                <button class="bg-red-500 text-white px-2 py-1 rounded mb-1" onclick="eliminarDocumento('${doc.id}')">[I9.TB01.BT04] Eliminar</button>
             </td>
         </tr>`;
     });
@@ -1250,7 +1228,7 @@ function renderI9ListaDocumentos() {
 function renderI10CriacaoEdicaoDocumento() {
     const doc = currentState.contextId ? getItemById(currentState.contextId) : {};
     let isEdit = !!doc.id;
-    let html = `<h1 class="text-3xl font-bold mb-4">[I10] Interface 10 – ${isEdit ? 'Edição' : 'Criação'} de Documento</h1>
+    let html = `<h1 class="text-3xl font-bold mb-4">[I10] ${isEdit ? 'Edição do Documento' : 'Criação de Documento'}</h1>
     <div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div><label class="block font-bold">[I10.LB01] Processo Associado</label>
@@ -1283,8 +1261,8 @@ function renderI10CriacaoEdicaoDocumento() {
         </div>
         ${isEdit ? `<div class="mb-4"><button class="text-blue-600 underline" onclick="alert('Download do(s) ficheiro(s)')">[I10.BT01] Download</button></div>` : ''}
         <div class="flex gap-2 mt-6">
-            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="alert('Guardar como Rascunho')">[I10.BT02] Guardar como Rascunho</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="alert('Guardar e Publicar')">[I10.BT03] Guardar e Publicar</button>
+            <button class="bg-yellow-500 text-white px-4 py-2 rounded" onclick="guardarDocumento('rascunho', '${doc.id || ''}')">[I10.BT02] Guardar como Rascunho</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded" onclick="guardarDocumento('publicar', '${doc.id || ''}')">[I10.BT03] Guardar e Publicar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded" onclick="navigateTo('${isEdit ? 'I11' : 'I9'}', '${doc.id || ''}')">[I10.BT04] Voltar</button>
         </div>
     </div>`;
@@ -1299,12 +1277,12 @@ function renderI11DetalheDocumento() {
         <div>
             <button class="text-blue-600 underline mr-4" onclick="alert('Download')">[I11.BT01] Download</button>
             <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I10', '${doc.id}')">[I11.BT02] Edição</button>
-            <button class="bg-orange-500 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Desativar')">[I11.BT03] Desativar</button>
-            <button class="bg-red-500 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Eliminar')">[I11.BT04] Eliminar</button>
+            <button class="bg-orange-500 text-white px-4 py-2 rounded shadow mr-2" onclick="desativarDocumento('${doc.id}')">[I11.BT03] Desativar</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded shadow mr-2" onclick="eliminarDocumento('${doc.id}')">[I11.BT04] Eliminar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I9')">[I11.BT05] Voltar</button>
         </div>
     </div>
-    <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="grid grid-cols-2 gap-4 mb-6 opacity-75">
         <div><strong>[I11.LB01] Processo Associado:</strong> PROC-001</div>
         <div><strong>[I11.TXT01] Label de Registo:</strong> ${doc.labelRegisto || ''}</div>
         <div><strong>[I11.TXT02] Código:</strong> ${doc.codigo || ''}</div>
@@ -1342,9 +1320,9 @@ function renderI11DetalheDocumento() {
             <td class="border px-4 py-2">${h.dataRevisao}</td>
             <td class="border px-4 py-2">${h.status}</td>
             <td class="border px-4 py-2">
-                <button class="bg-gray-600 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I14', '${h.id}')">Detalhe Histórico</button>
-                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I10', '${h.id}')">Edição</button>
-                <button class="bg-green-600 text-white px-3 py-1 rounded" onclick="alert('Publicar')">Publicar</button>
+                <button class="bg-gray-600 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I14', '${h.id}')">[I11.TB02.BT01] Detalhe Histórico</button>
+                <button class="bg-yellow-500 text-white px-3 py-1 rounded mr-1" onclick="navigateTo('I10', '${h.id}')">[I11.TB02.BT02] Edição</button>
+                ${(h.status === 'Rascunho' || h.status === 'Inativo') ? `<button class="bg-green-600 text-white px-3 py-1 rounded" onclick="guardarDocumento('publicar', '${h.id}')">[I11.TB02.BT03] Publicar</button>` : ''}
             </td>
         </tr>`;
     });
@@ -1363,7 +1341,7 @@ function renderI12DetalheHistoricoProcesso() {
         <h1 class="text-3xl font-bold">[I12] Interface 12 – Detalhe Histórico de Processo</h1>
         <div>
             <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I4', '${p.id}')">[I12.BT01] Edição</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Publicar')">[I12.BT02] Publicar</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded shadow mr-2" onclick="guardarProcesso('publicar', '${p.id}')">[I12.BT02] Publicar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I3', '${p.id}')">[I12.BT03] Voltar</button>
         </div>
     </div>
@@ -1400,7 +1378,7 @@ function renderI12DetalheHistoricoProcesso() {
                     <td class="border px-4 py-2">${sp.versao}</td>
                     <td class="border px-4 py-2">${sp.dataElaboracao}</td>
                     <td class="border px-4 py-2">
-                        <button class="bg-gray-600 text-white px-3 py-1 rounded" onclick="navigateTo('${sp.status==='Publicado'?'I7':'I13'}', '${sp.id}')">Detalhe</button>
+                        <button class="bg-gray-600 text-white px-3 py-1 rounded" onclick="handleIntelligentNavigation('${sp.id}')">[I12.TB02.BT01] Detalhe</button>
                     </td>
                 </tr>`;
             }
@@ -1434,7 +1412,7 @@ function renderI12DetalheHistoricoProcesso() {
                     <td class="border px-4 py-2">${doc.dataElaboracao}</td>
                     <td class="border px-4 py-2">${doc.tipo || ''}</td>
                     <td class="border px-4 py-2">
-                        <button class="bg-gray-600 text-white px-3 py-1 rounded" onclick="navigateTo('${doc.status==='Publicado'?'I11':'I14'}', '${doc.id}')">Detalhe</button>
+                        <button class="bg-gray-600 text-white px-3 py-1 rounded" onclick="handleIntelligentNavigation('${doc.id}')">[I12.TB03.BT01] Detalhe</button>
                     </td>
                 </tr>`;
             }
@@ -1454,7 +1432,7 @@ function renderI13DetalheHistoricoSubProcesso() {
         <h1 class="text-3xl font-bold">[I13] Interface 13 – Detalhe Histórico de Sub processo</h1>
         <div>
             <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I8', '${sp.id}')">[I13.BT01] Edição</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Publicar')">[I13.BT02] Publicar</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded shadow mr-2" onclick="guardarSubProcesso('publicar', '${sp.id}')">[I13.BT02] Publicar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I7', '${sp.id}')">[I13.BT03] Voltar</button>
         </div>
     </div>
@@ -1494,7 +1472,7 @@ function renderI13DetalheHistoricoSubProcesso() {
                     <td class="border px-4 py-2">${doc.dataElaboracao}</td>
                     <td class="border px-4 py-2">${doc.tipo || ''}</td>
                     <td class="border px-4 py-2">
-                        <button class="bg-gray-600 text-white px-3 py-1 rounded" onclick="navigateTo('${doc.status==='Publicado'?'I11':'I14'}', '${doc.id}')">Detalhe</button>
+                        <button class="bg-gray-600 text-white px-3 py-1 rounded" onclick="handleIntelligentNavigation('${doc.id}')">[I13.TB02.BT01] Detalhe</button>
                     </td>
                 </tr>`;
             }
@@ -1515,7 +1493,7 @@ function renderI14DetalheHistoricoDocumento() {
         <div>
             <button class="text-blue-600 underline mr-4" onclick="alert('Download')">[I14.BT01] Download do Ficheiro Histórico</button>
             <button class="bg-blue-600 text-white px-4 py-2 rounded shadow mr-2" onclick="navigateTo('I10', '${doc.id}')">[I14.BT02] Edição</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded shadow mr-2" onclick="alert('Publicar')">[I14.BT03] Publicar</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded shadow mr-2" onclick="guardarDocumento('publicar', '${doc.id}')">[I14.BT03] Publicar</button>
             <button class="bg-gray-500 text-white px-4 py-2 rounded shadow" onclick="navigateTo('I11', '${doc.id}')">[I14.BT04] Voltar</button>
         </div>
     </div>
@@ -1533,5 +1511,4 @@ function renderI14DetalheHistoricoDocumento() {
     return html;
 }
 
-// Initial render
-window.onload = render;
+window.onload = render;// Initial render
