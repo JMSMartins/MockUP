@@ -166,6 +166,14 @@ function getItemById(id) {
     return null;
 }
 
+
+// Toggle Interface Tags Logic
+let showInterfaceTags = true;
+function toggleInterfaceTags() {
+    showInterfaceTags = !showInterfaceTags;
+    render();
+}
+
 // ==========================================
 // BUSINESS LOGIC
 // ==========================================
@@ -476,55 +484,62 @@ function navigateTo(view, contextId = null) {
 // Core Render Function
 function render() {
     const app = document.getElementById('app');
-    app.innerHTML = ''; // Clear current view
+    let htmlContent = '';
 
     switch (currentState.view) {
         case 'I1':
-            app.innerHTML = renderI1ListaProcessos();
+            htmlContent = renderI1ListaProcessos();
             break;
         case 'I2':
-            app.innerHTML = renderI2CriacaoProcesso();
+            htmlContent = renderI2CriacaoProcesso();
             break;
         case 'I3':
-            app.innerHTML = renderI3DetalheProcessoAtivo();
+            htmlContent = renderI3DetalheProcessoAtivo();
             break;
         case 'I4':
-            app.innerHTML = renderI4RevisaoProcesso();
+            htmlContent = renderI4RevisaoProcesso();
             break;
         case 'I5':
-            app.innerHTML = renderI5ListaSubProcessos();
+            htmlContent = renderI5ListaSubProcessos();
             break;
         case 'I6':
-            app.innerHTML = renderI6CriacaoSubProcesso();
+            htmlContent = renderI6CriacaoSubProcesso();
             break;
         case 'I7':
-            app.innerHTML = renderI7DetalheSubProcessoAtivo();
+            htmlContent = renderI7DetalheSubProcessoAtivo();
             break;
         case 'I8':
-            app.innerHTML = renderI8RevisaoSubProcesso();
+            htmlContent = renderI8RevisaoSubProcesso();
             break;
         case 'I9':
-            app.innerHTML = renderI9ListaDocumentos();
+            htmlContent = renderI9ListaDocumentos();
             break;
         case 'I10':
-            app.innerHTML = renderI10CriacaoEdicaoDocumento();
+            htmlContent = renderI10CriacaoEdicaoDocumento();
             break;
         case 'I11':
-            app.innerHTML = renderI11DetalheDocumento();
+            htmlContent = renderI11DetalheDocumento();
             break;
         case 'I12':
-            app.innerHTML = renderI12DetalheHistoricoProcesso();
+            htmlContent = renderI12DetalheHistoricoProcesso();
             break;
         case 'I13':
-            app.innerHTML = renderI13DetalheHistoricoSubProcesso();
+            htmlContent = renderI13DetalheHistoricoSubProcesso();
             break;
         case 'I14':
-            app.innerHTML = renderI14DetalheHistoricoDocumento();
+            htmlContent = renderI14DetalheHistoricoDocumento();
             break;
 
         default:
-            app.innerHTML = `<div><h1>404 Not Found</h1><button onclick="navigateTo('I1')">Go Home</button></div>`;
+            htmlContent = `<div><h1>404 Not Found</h1><button onclick="navigateTo('I1')">Go Home</button></div>`;
     }
+
+    if (!showInterfaceTags) {
+        // Regex to remove tags like [I1.BT01] or [I2]
+        htmlContent = htmlContent.replace(/\[I[0-9]+(?:\.[A-Z0-9]+)*\]\s*/g, '');
+    }
+
+    app.innerHTML = htmlContent;
 }
 
 // ==========================================
@@ -593,8 +608,10 @@ function renderI2CriacaoProcesso() {
     let html = `<h1 class="text-3xl font-bold mb-4">[I2] Interface 2 – Criação de Processo</h1>`;
     html += `<div class="bg-white p-6 border rounded shadow-sm">
         <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="block font-bold">[I2.UPL01] Upload Logo</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I7.UPL01] Upload Logo</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I2.UPL02] Upload Banner</label><input type="file" accept="image/*" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.UPL03] Upload Ficheiro de Processo</label><input type="file" accept=".pdf" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I2.DWN01] Download Ficheiro de Processo</label><button class="border p-2 w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>Sem ficheiro</button></div>
             <div><label class="block font-bold">[I2.TXT01] Label de Registo</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I2.TXT02] Código</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I2.TXT03] Nome</label><input type="text" class="border p-2 w-full"></div>
@@ -635,6 +652,7 @@ function renderI3DetalheProcessoAtivo() {
     <div class="grid grid-cols-2 gap-4 mb-6 opacity-75 bg-white p-4 shadow rounded">
         <div><strong>[I3.UPL01] Upload Logo:</strong> <input type="file" disabled></div>
         <div><strong>[I3.UPL02] Upload Banner:</strong> <input type="file" disabled></div>
+        <div><strong>[I3.DWN01] Download Ficheiro de Processo:</strong> <button class="text-blue-600 underline">Download PDF</button></div>
         <div><strong>[I3.TXT01] Label de Registo:</strong> ${p.labelRegisto || ''}</div>
         <div><strong>[I3.TXT02] ID do Registo:</strong> ${p.id || ''}</div>
         <div><strong>[I3.TXT03] Código:</strong> ${p.codigo || ''}</div>
@@ -653,7 +671,7 @@ function renderI3DetalheProcessoAtivo() {
         <div><strong>[I2.TXT14] Indicadores de Sucesso:</strong> ${p.indicadoresSucesso || ''}</div>
         <div><strong>[I2.TXT15] Partes Interessadas Externas:</strong> ${p.partesInteressadasExternas || ''}</div>
         <div><strong>[I2.TXT16] Partes Interessadas Internas:</strong> ${p.partesInteressadasInternas || ''}</div>
-        <div><strong>[I2.TXT17] Referenciais:</strong> ${p.referenciais || ''}</div>
+        <div><strong>[I3.TXT17] Referenciais:</strong> ${p.referenciais || ''}</div>
     </div>
 
     <div class="mb-4">
@@ -798,6 +816,8 @@ function renderI4RevisaoProcesso() {
         <div class="grid grid-cols-2 gap-4 mb-4">
             <div><label class="block font-bold">[I4.UPL01] Upload Logo</label><input type="file" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I4.UPL02] Upload Banner</label><input type="file" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I4.UPL03] Upload Ficheiro de Processo</label><input type="file" accept=".pdf" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I4.DWN01] Download Ficheiro de Processo</label><button class="text-blue-600 underline">Download PDF atual</button></div>
             <div><label class="block font-bold">[I4.TXT01] Label de Registo</label><input type="text" class="border p-2 w-full" value="${p.labelRegisto || ''}"></div>
             <div><label class="block font-bold">[I4.TXT02] ID do Registo</label><input type="text" class="border p-2 w-full bg-gray-100" value="${p.id || ''}" readonly></div>
             <div><label class="block font-bold">[I4.TXT03] Código</label><input type="text" class="border p-2 w-full" value="${p.codigo || ''}"></div>
@@ -809,7 +829,7 @@ function renderI4RevisaoProcesso() {
             <div><label class="block font-bold">[I4.TXT08] Versão</label><input type="text" class="border p-2 w-full" value="${p.versao || ''}"></div>
             <div><label class="block font-bold">[I4.DT02] Data de revisão da versão</label><input type="date" class="border p-2 w-full" value="${p.dataRevisao || ''}"></div>
             <div><label class="block font-bold">[I4.TXT09] Riscos Relevantes</label><input type="text" class="border p-2 w-full" value="${p.riscos || ''}"></div>
-            <div><label class="block font-bold">[I2.TXT10] Oportunidades</label><input type="text" class="border p-2 w-full" value="${p.oportunidades || ''}"></div>
+            <div><label class="block font-bold">[I3.TXT11] Oportunidades</label><input type="text" class="border p-2 w-full" value="${p.oportunidades || ''}"></div>
             <div><label class="block font-bold">[I4.TXT11] Entradas</label><input type="text" class="border p-2 w-full" value="${p.entradas || ''}"></div>
             <div><label class="block font-bold">[I4.TXT12] Saídas</label><input type="text" class="border p-2 w-full" value="${p.saidas || ''}"></div>
             <div><label class="block font-bold">[I4.TXT13] Indicadores de Sucesso</label><input type="text" class="border p-2 w-full" value="${p.indicadoresSucesso || ''}"></div>
@@ -981,6 +1001,8 @@ function renderI6CriacaoSubProcesso() {
             </div>
             <div><label class="block font-bold">[I6.UPL01] Upload Logo</label><input type="file" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I6.UPL02] Upload Banner</label><input type="file" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I6.UPL03] Upload Ficheiro de Sub Processo</label><input type="file" accept=".pdf" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I6.DWN01] Download Ficheiro de Sub Processo</label><button class="border p-2 w-full bg-gray-100 text-gray-500 cursor-not-allowed" disabled>Sem ficheiro</button></div>
             <div><label class="block font-bold">[I6.TXT01] Label de Registo</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I6.TXT02] Código</label><input type="text" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I6.TXT03] Nome</label><input type="text" class="border p-2 w-full"></div>
@@ -1020,8 +1042,9 @@ function renderI7DetalheSubProcessoAtivo() {
 
     <div class="grid grid-cols-2 gap-4 mb-6 opacity-75 bg-white p-4 shadow rounded">
         <div><strong>[I6.LB01] Processo Pai:</strong> ${sp.processoPaiId || ''}</div>
-        <div><strong>[I2.UPL01] Upload Logo:</strong> <input type="file" disabled></div>
-        <div><strong>[I2.UPL02] Upload Banner:</strong> <input type="file" disabled></div>
+        <div><strong>[I7.UPL01] Upload Logo:</strong> <input type="file" disabled></div>
+        <div><strong>[I7.UPL02] Upload Banner:</strong> <input type="file" disabled></div>
+        <div><strong>[I7.DWN01] Download Ficheiro de Sub Processo:</strong> <button class="text-blue-600 underline">Download PDF</button></div>
         <div><strong>[I7.TXT01] Label de Registo:</strong> ${sp.labelRegisto || ''}</div>
         <div><strong>[I7.TXT02] ID do Registo:</strong> ${sp.id || ''}</div>
         <div><strong>[I7.TXT03] Código:</strong> ${sp.codigo || ''}</div>
@@ -1145,6 +1168,8 @@ function renderI8RevisaoSubProcesso() {
             <div><label class="block font-bold">[I8.LB01] Processo Pai</label><input type="text" class="border p-2 w-full bg-gray-100" value="${sp.processoPaiId || ''}" readonly></div>
             <div><label class="block font-bold">[I8.UPL01] Upload Logo</label><input type="file" class="border p-2 w-full"></div>
             <div><label class="block font-bold">[I8.UPL02] Upload Banner</label><input type="file" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I8.UPL03] Upload Ficheiro de Sub Processo</label><input type="file" accept=".pdf" class="border p-2 w-full"></div>
+            <div><label class="block font-bold">[I8.DWN01] Download Ficheiro de Sub Processo</label><button class="text-blue-600 underline">Download PDF atual</button></div>
             <div><label class="block font-bold">[I8.TXT01] Label de Registo</label><input type="text" class="border p-2 w-full" value="${sp.labelRegisto || ''}"></div>
             <div><label class="block font-bold">[I8.TXT02] ID do Registo</label><input type="text" class="border p-2 w-full bg-gray-100" value="${sp.id || ''}" readonly></div>
             <div><label class="block font-bold">[I8.TXT03] Código</label><input type="text" class="border p-2 w-full" value="${sp.codigo || ''}"></div>
